@@ -1,0 +1,18 @@
+<html>
+  <head>
+    <title>Film Production Database</title>
+  </head>
+  <body>
+      <h1>Film Production Database</h1>
+      <a href="/register">Register</a>
+      <a href="/login">Login</a>
+
+      <div class="container" id="main">
+      {% block content %}{% endblock %}
+    </div>
+
+    <script src="{{ url_for('static', filename='cookies.js') }}" /></script>
+    <script src="{{ url_for('static', filename='initialize.js') }}"></script>
+
+  </body>
+</html>

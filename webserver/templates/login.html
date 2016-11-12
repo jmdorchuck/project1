@@ -1,0 +1,13 @@
+{% extends "layout.html" %}
+{% block content %}
+<h2>Login</h2>
+<form method="POST" action="/login_2_site">
+    <p>Please enter your user id.</p>
+    <ul><li><label for="l2s-uid">UID:</label>
+            <input type="text" name="uid" id="l2s-uid" size=10>
+        </li>
+    </ul>
+</form>
+
+
+{% endblock %}

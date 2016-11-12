@@ -30,7 +30,7 @@ CREATE TABLE Users(
                 CHECK (email_address SIMILAR TO 
                     '[a-zA-Z0-9.]+@[a-zA-Z0-9]+.(com|gov|edu|net|tv|org)'),
             --headshot BLOB,
-            conflict_dates date ARRAY,
+            conflict_dates timestamp ARRAY,
             PRIMARY KEY(uid)
 );
 
@@ -110,7 +110,7 @@ CREATE TABLE Locations(
 CREATE TABLE Filming_Locations(
             filming_loc_id int,
             loc_id int REFERENCES Locations,
-            scheduling_conf date[],
+            scheduling_conf timestamp[],
             rate float,
             PRIMARY KEY(filming_loc_id)
 );
@@ -159,7 +159,7 @@ CREATE TABLE Shot_At(
             scene_id int,
             filming_loc_id int,
             shoot_time time,
-            shoot_date date,
+            shoot_date timestamp,
             PRIMARY KEY (scene_id, shoot_time),
             FOREIGN KEY (scene_id) REFERENCES Scenes,
             FOREIGN KEY (filming_loc_id) REFERENCES Filming_Locations
