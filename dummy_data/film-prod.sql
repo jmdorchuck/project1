@@ -76,8 +76,6 @@ CREATE TABLE Productions(
             PRIMARY KEY(prod_id)
 );
 
- 
- 
 CREATE TABLE Scenes(
             scene_id int,
             description text,

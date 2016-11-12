@@ -18,7 +18,7 @@ Read about it online.
 import os
 from sqlalchemy import *
 from sqlalchemy.pool import NullPool
-from flask import Flask, abort, request, render_template, g, redirect, Response, make_response, url_for
+from flask import Flask, abort, request, render_template, g, redirect, Response, make_response, url_for, session, escape
 
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 sttc_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
@@ -107,7 +107,7 @@ def teardown_request(exception):
   except Exception as e:
     pass
 
-
+user_types = {'crew':'cid','actor':'aid','producer':'pid'}
 
 
 #
@@ -228,7 +228,51 @@ def login_2_site():
 @app.route('/register')
 def register():
 #  cursor = g.conn.execute("SELECT name,password FROM Users")
-  return render_template("register.html")  
+  context = dict(types = user_types)
+  return render_template("register.html", types=user_types.keys())  
+
+@app.route('/register_4_site', methods=['POST'])
+def register_4_site():
+
+  # Gather the form variables
+  name = request.form['name']
+
+  phone_num = request.form['phone_num1']+'-'+request.form['phone_num2']+'-'+request.form['phone_num3']
+  if len(phone_num) != 12:
+    return render_template("registration-error.html")
+  past_cred_raw = request.form['past_cred'] 
+  past_cred = past_cred_raw if past_cred_raw != 'None' else 'null' 
+  email_address = request.form['email_address']
+  if (name != None and phone_num != None and email_address != None):
+    # First, we need to generate the next available uid.
+    new_uid = int(g.conn.execute("SELECT MAX(uid) AS uid FROM USERS").fetchone()['uid'])+1
+
+    # Try to insert the user into the Users table
+    try:
+      insert_cmd = "INSERT INTO Users VALUES (:u, :n, :p, :pc, :e)"
+      g.conn.execute(text(insert_cmd), u=new_uid, n=name, p=phone_num, pc=past_cred, e=email_address)
+    except:
+      return render_template("registration-error.html")
+
+    # Try to insert the user into the Crew, Actors, and Producers tables respectively.
+    selected_types = request.form.getlist('user_type')
+    print 'Selected Types: '
+    print selected_types
+    for t in selected_types:
+      # Get the id from the respective table, first by finding the
+      # type and then by selecting the current max.
+      print t
+      print user_types[t]
+      tid_type = user_types[t]
+      id_cmd = "SELECT MAX(:tid) from :t"
+      # Generate the next available tid
+      new_tid = int(g.conn.execute(text(id_cmd), tid=text(tid_type), t=t).fetchone()[tid_type])+1
+      insert_cmd = "INSERT INTO :t ('uid',':tid_type' VALUES (:u, :new_tid)"
+      g.conn.execute(text(insert_cmd), t=t, tid_type=tid_type, u=new_uid, new_tid=new_tid)
+    return render_template("registered.html",name=name)  
+
+  else:
+    return render_template("registration-error.html")
 
 if __name__ == "__main__":
   import click

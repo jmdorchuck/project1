@@ -1,6 +1,28 @@
 {% extends "layout.html" %}
 {% block content %}
-<h2>Login</h2>
+<h2>Register</h2>
+<form method="POST" action="/register_4_site">
+    <p>Please fill out the following information.</p>
+    <ul><li><label for="r4s-name">Name:</label>
+            <input type="text" name="name" id="r4s-name" size=100 required>
+        </li>
+        <li><label for="r4s-phone_num">Phone Number:</label>
+            <input type="tel" name="phone_num1" id="r4s-phone_num" size=3 required maxlength=3>-<input type="tel" name="phone_num2" id="r4s-phone_num" size=3 required maxlength=3>-<input type="tel" name="phone_num3" id="r4s-phone_num" size=4 required maxlength=4>
+
+        </li>
+        <li><label for="r4s-email_address">E-Mail Address:</label>
+            <input type="email" name="email_address" id="r4s-email_address" size=100 required>
+        </li>
+    </ul>
+    <p><label>Past Credits:<br />Please list other productions you have worked on in the past.<br />
+            <textarea name="past_cred" rows=10 cols=100></textarea></label></p>
+    <p>Select all that apply</p> 
+    <ul>
+        {% for n in types %}
+        <li><input type="checkbox" name="user_type" value="{{n}}">{{ n|title }}</li>
+        {% endfor %}
+    </ul>
+    <input type="submit" value="Register">
 
 
 {% endblock %}
