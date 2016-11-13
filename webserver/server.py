@@ -107,7 +107,7 @@ def teardown_request(exception):
   except Exception as e:
     pass
 
-user_types = {'crew':'cid','actor':'aid','producer':'pid'}
+user_types = {'crew':'cid','actors':'aid','producers':'pid'}
 
 
 #
@@ -249,26 +249,13 @@ def register_4_site():
 
     # Try to insert the user into the Users table
     try:
-      insert_cmd = "INSERT INTO Users VALUES (:u, :n, :p, :pc, :e)"
-      g.conn.execute(text(insert_cmd), u=new_uid, n=name, p=phone_num, pc=past_cred, e=email_address)
+      insert_cmd = "INSERT INTO Users VALUES (%s, %s, %s, %s, %s)"
+      g.conn.execute(insert_cmd, (new_uid, name, phone_num, past_cred, email_address))
     except:
       return render_template("registration-error.html")
 
     # Try to insert the user into the Crew, Actors, and Producers tables respectively.
-    selected_types = request.form.getlist('user_type')
-    print 'Selected Types: '
-    print selected_types
-    for t in selected_types:
-      # Get the id from the respective table, first by finding the
-      # type and then by selecting the current max.
-      print t
-      print user_types[t]
-      tid_type = user_types[t]
-      id_cmd = "SELECT MAX(:tid) from :t"
-      # Generate the next available tid
-      new_tid = int(g.conn.execute(text(id_cmd), tid=text(tid_type), t=t).fetchone()[tid_type])+1
-      insert_cmd = "INSERT INTO :t ('uid',':tid_type' VALUES (:u, :new_tid)"
-      g.conn.execute(text(insert_cmd), t=t, tid_type=tid_type, u=new_uid, new_tid=new_tid)
+    # I need to come back to this-the previous code was ugly as sin. 
     return render_template("registered.html",name=name)  
 
   else:
