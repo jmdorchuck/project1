@@ -1,0 +1,11 @@
+{% extends "layout.html" %}
+{% block content %}
+
+## A page to add a production to the database
+
+<h2> Create a Production</h2>
+<form method="POST" action="/addproduction_2_db">
+    <ul><li><label for="production-name">Production Name:</label>
+            <input type="text" name="production_name" id="production-name" size=100 required>:
+
+{% endblock %}

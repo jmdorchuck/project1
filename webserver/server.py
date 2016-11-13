@@ -217,18 +217,19 @@ def login_2_site():
   uid = request.form['uid']
   print uid
   count = g.conn.execute("SELECT COUNT(uid) FROM Users WHERE uid=%s",(uid,)).rowcount
+  
   if count == 1:
     cursor = g.conn.execute("SELECT name FROM Users WHERE uid=%s",(uid,))
     name = cursor.first()['name']
     resp = make_response(redirect('/'))
     resp.set_cookie('uid',uid)
     resp.set_cookie('name',name)
+    cursor.close()
     return resp
 
 @app.route('/register')
 def register():
 #  cursor = g.conn.execute("SELECT name,password FROM Users")
-  context = dict(types = user_types)
   return render_template("register.html", types=user_types.keys())  
 
 @app.route('/register_4_site', methods=['POST'])
@@ -245,12 +246,14 @@ def register_4_site():
   email_address = request.form['email_address']
   if (name != None and phone_num != None and email_address != None):
     # First, we need to generate the next available uid.
-    new_uid = int(g.conn.execute("SELECT MAX(uid) AS uid FROM USERS").fetchone()['uid'])+1
+    cursor = g.conn.execute("SELECT MAX(uid) AS uid FROM Users")
+    new_uid = int(cursor.fetchone()['uid'])+1
+    cursor.close()
 
     # Try to insert the user into the Users table
     try:
-      insert_cmd = "INSERT INTO Users VALUES (%s, %s, %s, %s, %s)"
-      g.conn.execute(insert_cmd, (new_uid, name, phone_num, past_cred, email_address))
+      insert_cmd = "INSERT INTO Users VALUES (:u, :n, :p, :c, :e)"
+      g.conn.execute(text(insert_cmd), u=new_uid, n=name, p=phone_num, c=past_cred, e=email_address)
     except:
       return render_template("registration-error.html")
 
@@ -260,6 +263,41 @@ def register_4_site():
 
   else:
     return render_template("registration-error.html")
+
+@app.route('/addscript')
+def addscript():
+  return render_template("addscript.html")  
+
+@app.route('/addscript_2_db', methods=['POST'])
+def addscript_2_db():
+  # Gather the form variables
+  title = request.form['title']
+  writer = request.form['writer']
+  page_count = request.form['page_count']
+
+  # Find the last added script id then generate the next script id
+  cursor = g.conn.execute("SELECT MAX(script_id) AS sid FROM Scripts")
+  new_sid = int(cursor.fetchone()['sid'])+1
+  cursor.close()
+ 
+  try:
+    g.conn.execute(text('INSERT INTO Scripts VALUES (:i, :t, :p, :w)'), i=new_sid, t=title, p=page_count, w=writer)
+  except:
+    return render_template("error.html", redo_link="/addscript", action="add your script")
+
+  return render_template("success.html", action="adding your script")
+
+
+@app.route('/addproduction', methods=['POST'])
+def addproduction():
+  cursor = g.conn.execute("SELECT script_id,title FROM scripts")
+  scripts = []
+  for script in cursor:
+    scripts.append(script)
+  cursor.close()
+  print(scripts)
+  return render_template("register.html")
+
 
 if __name__ == "__main__":
   import click

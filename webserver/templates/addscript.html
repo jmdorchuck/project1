@@ -1,0 +1,25 @@
+{% extends "layout.html" %}
+{% block content %}
+
+## A page to add a script to the database
+## This is also the means of adding characters to the db
+
+<h2>Add a Script to the Database</h2>
+
+<form method="POST" action="/addscript_2_db">
+    <p>Please fill out the following information.</p>
+    <ul><li><label for="as2db-title">Title:</label>
+            <input type="text" name="title" id="as2db-title" size=100 required>
+        </li>
+        <li><label for="as2db-pagecount">Page Count:</label>
+            <input type="number" name="page_count" id="as2db-pagecount" required>
+        </li>
+        <li><label for="as2db-writer">Written by:</label>
+            <input type="text" name="writer" id="as2db-writer" size=100 required>
+        </li>
+    </ul>
+    <input type="submit" value="Add Script">
+
+</form>
+
+{% endblock %}
