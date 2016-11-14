@@ -5,7 +5,9 @@
 
 <table><tr><th>Page Numbers</th><th>Scene Description</th></tr>
        {% for s in scenelist %}
-       <tr><td>{{ s[2].lower }}-{{ s[2].upper }}</td><td>{{ s[1] }}</td></tr>
+       <tr><td>{{ s[2].lower }}-{{ s[2].upper }}</td>
+           <td>{{ s[1] }}</td>
+           <td><a href="/managescene?scene={{ s[0] }}">Manage</a></td></tr>
        {% endfor %}
        <tr><td><a href="/addscene?production={{ production }}">Add a new scene</a></td></tr>
 </table>

@@ -1,0 +1,61 @@
+{% extends "layout.html" %}
+{% block content %}
+<h2>Manage a given scene</h2> 
+
+<form method="POST" action="/addscene_2_db">
+  <input type="hidden" name="production" value="{{ prod_id }}">
+  <ul>
+     <li><label for="as2db-script">What Script is the scene from?</label>
+         <select name="script" required size="1" id="as2db-script">
+             {% for s in scripts %}
+             <option>{{ s[0] }} - {{ s[1] }}</option>
+             {% endfor %}
+        </select>
+     </li>
+
+    <li><label for="as2db-pages">What pages is it on?</label>
+        <p id="as2db-pages"><input type="number" step="1" name="lower_page" size=3 required>-<input type="number" step="1" name="upper_page" size=3 required></p></li>
+ 
+
+     <li><label for="as2db-description">Scene Description:</label>
+     <textarea name="description" rows="2" cols="60" id="as2db-description"></textarea>
+     </li>
+
+     <li><label>Special Effects:</label>
+         <ul id="sfx-text">
+             <li><input type="text" name="sfx[]" size=60></li>
+         </ul>
+         <button type="button" onclick="addTextField('sfx-text','sfx[]',60)">Add another effect (limit to 50)</button></li>
+
+     <li><label>Props:</label>
+         <ul id="props-text">
+             <li><input type="text" name="props[]" size=60></li>
+         </ul>
+         <button type="button" onclick="addTextField('props-text','props[]',60)">Add another prop (limit to 50)</button></li>
+
+     <li><label>Stunts:</label>
+         <ul id="stunts-text">
+             <li><input type="text" name="stunts[]" size=60></li>
+         </ul>
+         <button type="button" onclick="addTextField('stunts-text','stunts[]',60)">Add another stunt (limit to 50)</button></li>
+
+    <li><label for="as2db-weather">Desired Weather:</label>
+     <input type="text" name="weather" id="as2db-weather">
+     </li>
+
+    <li><label for="as2db-tod">Time of Day:</label>
+     <input type="text" name="tod"  id="as2db-tod"></li>
+
+    <li><label for="as2db-location">Location Description:</label>
+     <textarea rows="2" cols="60" name="location"  id="as2db-location"></textarea></li>
+
+   
+    <li><label for="as2db-cost">Estimated Cost:</label>
+     <input type="number" step="any" size="11" name="cost" id="as2db-cost"></li>
+
+
+  </ul>
+ <input type="submit" value="Add Scene">
+</form>
+
+{% endblock %}

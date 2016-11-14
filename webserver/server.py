@@ -431,7 +431,7 @@ def addscene():
   try:
     cursor = g.conn.execute(text("SELECT prod_title FROM Productions WHERE prod_id=:p"),p=prod_id)
     title = cursor.fetchone()['prod_title']
-    return render_template("addscene.html",production=prod_id, prod_title=title, scripts=script_list) 
+    return render_template("addscene.html",prod_id=prod_id, prod_title=title, scripts=script_list) 
   except:
     return render_template("error.html", redo_link="/productionselect", action="select a production")
    
@@ -439,32 +439,53 @@ def addscene():
 def addscene_2_db():
   # Gather the form variables
   try:
-    prod_id = int(request.form['production'])
+    prod_id = request.form['production']
+    print prod_id
     script = (request.form['script'].split(' - '))[0]
     lower_page = request.form['lower_page'] 
     upper_page = request.form['upper_page'] 
     description = request.form['description']
-    # Make sure the lists of arrays are not larger than the limit
 
-    if len(request.form.getlist('sfx[]')) > array_limit or \
-       len(request.form.getlist('props[]')) > array_limit or \
-       len(request.form.getlist('stunts[]')) > array_limit:
+    # Make sure the lists of arrays are not larger than the limit
+    if (len(request.form.getlist('sfx[]')) > array_limit or 
+       len(request.form.getlist('props[]')) > array_limit or 
+       len(request.form.getlist('stunts[]')) > array_limit):
       raise Exception()
     else:
       sfx = filter(None, request.form.getlist('sfx[]')) # Remove any empty strings from the SFX array
       props = filter(None, request.form.getlist('props[]')) # Remove any empty strings from the SFX array
       stunts = filter(None, request.form.getlist('stunts[]')) # Remove any empty strings from the SFX array
-
     weather = request.form['weather']
     time_of_day = request.form['tod']
     location = request.form['location']
     cost = float(request.form['cost'])
-
-
   except:
-    return render_template("error.html",redo_link="/productionselect", action="select your production again")
+    return errorpage(message="There was a problem with your input",
+                     redo_link="/productionselect", 
+                     action="add your scene again")
+
+  # Determine the new scene id.
+
+  cursor = g.conn.execute("SELECT MAX(scene_id) AS sid FROM Scenes")
+  new_sid = int(cursor.fetchone()['sid'])+1
+  cursor.close()
+
+  insert_cmd = "INSERT INTO Scenes VALUES(:s, :d, :f, :p, :t, :w, :o, :c, :l)"
+  g.conn.execute(text(insert_cmd),s=new_sid,d=description,f=sfx,p=props,
+                                    t=stunts,w=weather,o=time_of_day,
+                                    c=cost, l=location)
+
+
+
+  try:
+    print()
+  except:
+    return errorpage(message="There was a problem with your input",
+                     redo_link="/addscene?production="+str(prod_id), 
+                     action="add your scene again")
+
    
-  return render_template("index.html") 
+  return render_template("success.html", action="adding your scene")
   
 
 
