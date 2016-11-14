@@ -1,0 +1,10 @@
+{% extends "layout.html" %}
+{% block content %}
+<h2>Add a scene to the production of {{ title }}</h2> 
+
+<form method="POST" action="/addscene_2_db">
+ <ul><li><label for="as2db-description">Scene Description:</label>
+     <input type="textarea" rows="2" cols="60" id="as2db-description">
+     </li>
+     <li>
+{% endblock %}

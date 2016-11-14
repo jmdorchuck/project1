@@ -20,6 +20,8 @@ from sqlalchemy import *
 from sqlalchemy.pool import NullPool
 from flask import Flask, abort, request, render_template, g, redirect, Response, make_response, url_for, session, escape
 
+from operator import itemgetter
+
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 sttc_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
 
@@ -340,6 +342,52 @@ def addproduction_2_db():
 
 
   return render_template("success.html", action="adding your production")
+
+@app.route('/productionselect')
+def productionselect():
+  cursor = g.conn.execute(text("SELECT prod_id,prod_title FROM Productions"))
+  production_list = []
+  for production in cursor:
+    production_list.append(production)
+  cursor.close()
+  return render_template("productionselect.html",productionlist = production_list)
+
+@app.route('/selectproduction_2_edit', methods=['POST'])
+def selectproduction_2_edit():
+  # Determine which production they want to edit
+  try: 
+    production = request.form['prod2edit'] 
+    prod_id = int((production.split(' - '))[0])
+    query = ("SELECT S.scene_id, S.description, M.page_num "
+            "FROM Scenes AS S, Made_Of AS M "
+            "WHERE S.scene_id=M.scene_id AND S.scene_id IN (SELECT scene_id "
+                                  "FROM Made_Of "
+                                  "WHERE prod_id=:p)")
+    cursor = g.conn.execute(text(query),p=prod_id)
+    scene_list = []
+    for scene in cursor:
+      scene_list.append(scene)
+    cursor.close()
+    print scene_list
+    scene_list.sort(key=itemgetter(2)) 
+    print scene_list
+
+  except:
+    return render_template("error.html", redo_link="/productionselect", action="select another production")
+
+  return render_template("productionconsole.html", scenelist=scene_list, production=prod_id)
+
+@app.route('/addscene')
+def addscene():
+  # Get the production 
+  prod_id=int(request.args.get('production'))
+  try:
+    cursor = g.conn.execute(text("SELECT prod_title FROM Productions WHERE prod_id=:p"),p=prod_id)
+    title = cursor.fetchone()['prod_title']
+    return render_template("addscene.html",production=prod_id, title=title) 
+  except:
+    return render_template("error.html", redo_link="/productionselect", action="select a production")
+   
 
 
 if __name__ == "__main__":

@@ -115,16 +115,16 @@ INSERT INTO Scripts VALUES (14, 'Autumn Snow', 6, 'Klima Change');
 INSERT INTO Scripts VALUES (15, 'Lulu''s Tutu', 16, 'Jim Metcalf');
 
 -- Insert dummy data into Productions
-INSERT INTO Productions VALUES (1, 1000);
-INSERT INTO Productions VALUES (2, 500);
-INSERT INTO Productions VALUES (3, 15000);
-INSERT INTO Productions VALUES (4, 800);
-INSERT INTO Productions VALUES (5, 11000);
-INSERT INTO Productions VALUES (6, 3875);
-INSERT INTO Productions VALUES (7, 109000);
-INSERT INTO Productions VALUES (8, 15600);
-INSERT INTO Productions VALUES (9, 600);
-INSERT INTO Productions VALUES (10, 700);
+INSERT INTO Productions VALUES (1, 1000, 'title');
+INSERT INTO Productions VALUES (2, 500, 'title');
+INSERT INTO Productions VALUES (3, 15000, 'title');
+INSERT INTO Productions VALUES (4, 800, 'title');
+INSERT INTO Productions VALUES (5, 11000, 'title');
+INSERT INTO Productions VALUES (6, 3875, 'title');
+INSERT INTO Productions VALUES (7, 109000, 'title');
+INSERT INTO Productions VALUES (8, 15600, 'title');
+INSERT INTO Productions VALUES (9, 600, 'title');
+INSERT INTO Productions VALUES (10, 700, 'title');
 
 -- Insert dummy data into Scenes
 INSERT INTO Scenes VALUES (1, 'David and Emily go to see the mysterious Solon''s comet, but its appearance causes a change in Emily and a nearby bum.', ARRAY['bright flash of light'], ARRAY['telescope', 'magazine', 'blanket', 'bottle'], ARRAY['David pushes bum to the ground'],'chilly', 'night', 300, 'A park'); --Heaven Scene 1

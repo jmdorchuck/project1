@@ -1,6 +1,13 @@
 {% extends "layout.html" %}
 {% block content %}
 
-## This is the page where a user can edit a production
+<h2>Production Console</h3>
+
+<table><tr><th>Page Numbers</th><th>Scene Description</th></tr>
+       {% for s in scenelist %}
+       <tr><td>{{ s[2].lower }}-{{ s[2].upper }}</td><td>{{ s[1] }}</td></tr>
+       {% endfor %}
+       <tr><td><a href="/addscene?production={{ production }}">Add a new scene</a></td></tr>
+</table>
 
 {% endblock %}
