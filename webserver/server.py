@@ -510,6 +510,119 @@ def addscene_2_db():
    
   return render_template("success.html", action="adding your scene")
   
+@app.route('/managescene')
+def managescene():
+  redo_link = "/productionselect"
+  action = "select your production again"
+  
+  # Gather the variables
+  try:
+    prod_id = int(request.args.get('production'))
+    scene_id = int(request.args.get('scene'))
+ 
+  except:
+    return errorpage(redo_link=redo_link, action=action, 
+              message="Missing production or scene.")
+
+  try:
+    # Create a list of possible actors
+    cursor = g.conn.execute(text("SELECT Actors.aid,Users.name "
+                           "FROM Actors, Users "
+                           "WHERE Actors.uid=Users.uid"))
+    actor_list = []
+    for actor in cursor:
+      actor_list.append(actor)
+    cursor.close()
+
+    # Create a list of roles
+    cursor = g.conn.execute(text("SELECT char_id,char_name "
+                           + "FROM Characters "
+                           + "WHERE char_id IN (SELECT char_id "
+                                             + "FROM Feature "
+                                            + "WHERE scene_id=:s)"),
+                              s=scene_id) 
+
+    character_list = []
+    for character in cursor:
+      character_list.append(character)
+    cursor.close()
+   
+
+    # Create a list of possible crew 
+    cursor = g.conn.execute(text("SELECT Crew.cid,Users.name "
+                           "FROM Crew, Users "
+                           "WHERE Crew.uid=Users.uid"))
+    crew_list = []
+    for crew in cursor:
+      crew_list.append(crew)
+    cursor.close()
+
+    # Create a list of possible filming locations 
+    cursor = g.conn.execute(text("SELECT F.filming_loc_id,L.description "
+                           "FROM Filming_Locations as F, Locations as L "
+                           "WHERE F.loc_id=L.loc_id"))
+    location_list = []
+    for location in cursor:
+      location_list.append(location)
+    cursor.close()
+
+
+  except:
+    return errorpage(redo_link=redo_link, action=action, message="There is an error with the database.")
+
+  return render_template("managescene.html", production=prod_id, scene=scene_id,
+                                             characters=character_list,
+                                             actors=actor_list,
+                                             crew=crew_list,
+                                             locations=location_list)
+
+
+@app.route('/managescene_n_db', methods=['POST'])
+def managescene_n_db():
+  # Define error strings
+  redo_link = "/productionselect"
+  action = "select your production again"
+
+   # Gather the variables
+  try:
+    # Portrays Variables
+    scene_id = int(request.args.get('scene'))
+    actor_ids = request.form.getlist('actors')
+    char_ids = request.form.getlist('characters')
+ 
+    print 1
+    print actor_ids
+    print char_ids
+
+    '''
+    # Works_On Variables
+    crew_id =
+    prod_id = int(request.args.get('production'))
+    # scene_id from above
+    role = 
+
+    # Shot_At Variables
+    # scene_id
+    filming_loc_id = 
+    shoot_time =
+    shoot_date = 
+    ''' 
+
+  except:
+    errorpage(redo_link=redo_link, action=action)
+
+  # Insert the Portrays data in the database
+  try:   
+    print(len(char_ids) != len(actor_ids))
+
+    if len(char_ids) != len(actor_ids):
+      raise Exception
+    for i in range(len(char_ids)):
+      insert_portrays_cmd="INSERT INTO Portrays VALUES(:a, :c)"
+      g.conn.execute(text(insert_portrays_cmd),a=actor_ids[i], c=char_ids[i]) 
+
+  except:
+    return errorpage(redo_link=redo_link, action=action, message="Problem entering portrayal values.")
 
 
 if __name__ == "__main__":
