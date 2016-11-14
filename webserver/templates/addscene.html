@@ -56,7 +56,12 @@
     <li><label for="as2db-budget">Budget:</label>
      <input type="number" step="any" size="11" name="budget" id="as2db-budget"></li>
 
-
+    <li><label for="as2db-characters">Which characters are in the scene?</label>
+        <select name="characters" multiple>
+            {% for c in characters %}
+            <option>{{ c[0] }} - {{ c[1] }}</option>
+            {% endfor %}
+        </select>
 
   </ul>
  <input type="submit" value="Add Scene">

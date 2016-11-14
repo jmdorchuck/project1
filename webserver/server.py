@@ -429,10 +429,20 @@ def addscene():
     script_list.append(script)
   cursor.close()
 
+
+  # Provide a list of characters.
+  cursor = g.conn.execute(text("SELECT char_id,char_name FROM Characters"))
+  character_list = []
+  for character in cursor:
+    character_list.append(character)
+  cursor.close()
+
+
   try:
     cursor = g.conn.execute(text("SELECT prod_title FROM Productions WHERE prod_id=:p"),p=prod_id)
     title = cursor.fetchone()['prod_title']
-    return render_template("addscene.html",prod_id=prod_id, prod_title=title, scripts=script_list) 
+    return render_template("addscene.html",prod_id=prod_id, prod_title=title, 
+                            scripts=script_list, characters=character_list) 
   except:
     return render_template("error.html", redo_link="/productionselect", action="select a production")
    
@@ -461,6 +471,8 @@ def addscene_2_db():
     location = request.form['location']
     cost = float(request.form['cost'])
     budget = float(request.form['budget'])
+    characters = request.form.getlist('characters')
+    character_ids = map(lambda c: int((c.split(' - '))[0]), characters)
   except:
     return errorpage(message="There was a problem with your input",
                      redo_link="/productionselect", 
@@ -475,12 +487,20 @@ def addscene_2_db():
 
 
   try:
+    # Add to the Scenes Table
     insert_scenes_cmd = "INSERT INTO Scenes VALUES(:s, :d, :f, :p, :t, :w, :o, :c, :l)"
     g.conn.execute(text(insert_scenes_cmd),s=new_sid,d=description,f=sfx,p=props,
                                     t=stunts,w=weather,o=time_of_day,
                                     c=cost, l=location)
+   
+    # Add to the "Scripts and Productions are Made_Of Scenes" Table
     insert_made_of_cmd = "INSERT INTO Made_of VALUES(:c, :p, :s, :b, :r)"
     g.conn.execute(text(insert_made_of_cmd), c=script, p=prod_id, s=new_sid, b=budget, r=page_range)
+
+    # Add to the "Scenes Feature Characters" Table
+    for cid in character_ids:
+      insert_feature_cmd = "INSERT INTO Feature VALUES(:c, :s, :r)"
+      g.conn.execute(text(insert_feature_cmd), c=script, s=new_sid, r=cid)
 
   except:
     return errorpage(message="There was a problem with the database",
