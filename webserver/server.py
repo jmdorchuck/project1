@@ -288,15 +288,58 @@ def addscript_2_db():
   return render_template("success.html", action="adding your script")
 
 
-@app.route('/addproduction', methods=['POST'])
+@app.route('/addproduction')
 def addproduction():
-  cursor = g.conn.execute("SELECT script_id,title FROM scripts")
-  scripts = []
-  for script in cursor:
-    scripts.append(script)
+  cursor = g.conn.execute("SELECT P.producer_id,U.name FROM Producers AS P, Users as U WHERE P.uid=U.uid")
+  producer_list = []
+  for producer in cursor:
+    producer_list.append(producer)
   cursor.close()
-  print(scripts)
-  return render_template("register.html")
+  print(producer)
+  return render_template("addproduction.html", producerlist=producer_list)
+
+@app.route('/addproduction_2_db', methods=['POST'])
+def addproduction_2_db():
+  # Define our error function.
+  def errorpage(message=None):
+    if message == None:
+      return render_template("error.html", redo_link="/addproduction", action="add your production")
+    else:
+      return render_template("error.html",redo_link="/addproduction", action="add your production", message=message)
+
+  # First gather the form data
+  try:
+    production_company = request.form['production_company']  
+    producers = request.form.getlist('producers') 
+    producer_ids = map(lambda p: int((p.split(' - '))[0]), producers)
+    budget = float(request.form['budget'])
+
+  except:
+    return errorpage() 
+  # Determine the new production id.
+
+  cursor = g.conn.execute("SELECT MAX(prod_id) AS pid FROM Productions")
+  new_pid = int(cursor.fetchone()['pid'])+1
+  cursor.close()
+
+  # Now, we add the production to the production table  
+  try: 
+    g.conn.execute(text('INSERT INTO Productions VALUES (:p, :b)'), p=new_pid, b=budget)
+  except:
+    return errorpage() 
+
+  # Now, we add the producer/production relationship to the "Produced by" table
+  try: 
+    for producers in producer_ids:
+      g.conn.execute(text('INSERT INTO Produced_by VALUES (:p, :r, :c)'), p=new_pid, r=producers, c=production_company)
+  except:
+    # If we fail, we have to delete any existing records of the production
+    g.conn.execute(text('DELETE FROM Produced_by WHERE prod_id=:p'), p=new_pid)
+    g.conn.execute(text('DELETE FROM Productions WHERE prod_id=:p'), p=new_pid)
+    return errorpage() 
+
+
+  return render_template("success.html", action="adding your production")
 
 
 if __name__ == "__main__":

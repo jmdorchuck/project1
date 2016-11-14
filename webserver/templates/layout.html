@@ -1,12 +1,41 @@
+<!DOCTYPE html>
 <html>
   <head>
     <title>Film Production Database</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}" style="text/css">
+    
   </head>
   <body>
-      <h1>Film Production Database</h1>
-      <a href="/register">Register</a>
-      <a href="/login">Login</a>
-
+      <header>
+          <h1>Film Production Database</h1>
+          <a href="/register">Register</a>
+{#          <a href="/login">Login</a> #}
+{#          <a href="/user-console">My Profile</a>#}
+          <nav>
+              <ul>
+                  <li>Scripts
+                      <ul>
+                          <li><a href="/addscript">Add a Script</a></li>
+                          <li>Find a Script</li> 
+                      </ul>
+                  </li>
+                  <li>Productions
+                      <ul>
+                          <li><a href="/addproduction">Make a new production</a></li>
+                          <li><a href="/production-console">Manage a production</a></li>
+                          <li>Call Sheets</li> 
+                          <li>Breakdown Sheets</li>
+                      </ul>                  
+                  </li>
+                  <li>Find Talent
+                      <ul>
+                          <li>Cast</li>
+                          <li>Crew</li>
+                          <li>Producers</li>
+                  </li>
+              </ul>
+          </nav>
+      </header>
       <div class="container" id="main">
       {% block content %}{% endblock %}
     </div>

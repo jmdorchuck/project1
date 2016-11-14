@@ -2,6 +2,9 @@
 {% block content %}
 
 <h2>Sorry, there was an error.</h2>
+{% if message %}
+<p>{{ message }}</p>
+{% endif %}
 <p> Please try to <a href=" {{ redo_link }}"> {{ action }}</a> again.</p>
 
 {% endblock %}

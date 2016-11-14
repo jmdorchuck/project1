@@ -1,16 +1,23 @@
 {% extends "layout.html" %}
 {% block content %}
 
-## A page to add a production to the database
 
 <h2> Create a Production</h2>
 <form method="POST" action="/addproduction_2_db">
-    <ul><li><label for="production-name">Production Name:</label>
-            <input type="text" name="production_name" id="production-name" size=100 required>
-        <li><label for="script">Select a script:</label>
-          {#  <select name="script">
-              {% for s in scripts %}
-              <option> {{ s }}</option
-              {% endfor %}
-#} 
+    <p>Please enter the following information about your production.</p>
+    <ul><li><label for="ap2db-production-company">Production Company:</label>
+            <input type="text" name="production_company" id="ap2db-production-company" size=100>
+        <li><label for="ap2db-producers">Producer(s):</label>
+            <select name="producers" id="ap2db-producers" size=10 multiple required>
+                {% for p in producerlist %}
+                <option>{{ p[0]}} - {{ p[1] }}</option> 
+                {% endfor %}
+             </select>
+        <li><label for="ap2db-budget">Budget (in US Dollars):</label>
+            <input type="number" name="budget" id="ap2db-budget" size=11 min="0" step="any">
+        </li>
+     </ul>
+     <input type="submit" value="Add Production">
+</form>
+
 {% endblock %}
