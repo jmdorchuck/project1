@@ -1,0 +1,27 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<!-- A page to add a script to the database
+ This is also the means of adding characters to the db-->
+
+<h2>Add a Character to the Database</h2>
+
+<form method="POST" action="/addcharacter_2_db">
+    <p>Please fill out the following information.</p>
+    <ul><li><label for="ac2db-title">Name:</label>
+            <input type="text" name="name" id="as2db-title" size=100 required>
+        </li>
+        <li><label for="ac2db-age">Age:</label>
+            <input type="number" name="age" id="ac2db-age" required>
+        </li>
+        <li><label>Required Traits:</label>
+         <ul id="requirements-text">
+             <li><input type="text" name="requirements[]" size=60></li>
+         </ul>
+         <button type="button" onclick="addTextField('requirements-text','requirements[]',60)">Add another trait (limit of 50)</button></li>
+    </ul>
+    <input type="submit" value="Add Character">
+
+</form>
+
+{% endblock %}

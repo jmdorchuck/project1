@@ -6,13 +6,13 @@
 <h2>Production Console</h3>
 
 <form method="POST" action="/selectproduction_2_edit">
-    <p>Which production would you like to edit?</p>
+    <p>Which production would you like to manage?</p>
     <p><select name="prod2edit">
         {% for p in productionlist %}
         <option> {{ p[0] }} - {{ p[1] }} </option>
         {% endfor %} 
     </p>
-    <input type="submit" value="Edit Production">
+    <input type="submit" value="Manage Production">
 </form>
 
 {% endblock %}

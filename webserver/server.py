@@ -209,6 +209,15 @@ def another():
 #  g.conn.execute(text(cmd), name1 = name, name2 = name);
 #  return redirect('/')
 
+# Define our error function.
+def errorpage(message=None, redo_link="/index", action="try again"):
+  if message==None:
+    return render_template("error.html", redo_link="/addproduction", action="add your production")
+  else:
+    return render_template("error.html",redo_link=redo_link, action=action, message=message)
+
+# Set the array limit for array inputs
+array_limit=50
 
 @app.route('/login')
 def login():
@@ -273,9 +282,12 @@ def addscript():
 @app.route('/addscript_2_db', methods=['POST'])
 def addscript_2_db():
   # Gather the form variables
-  title = request.form['title']
-  writer = request.form['writer']
-  page_count = request.form['page_count']
+  try:
+    title = request.form['title']
+    writer = request.form['writer']
+    page_count = int(request.form['page_count'])
+  except:
+    return errorpage(message="There appears to be a problem with your inserted values.")
 
   # Find the last added script id then generate the next script id
   cursor = g.conn.execute("SELECT MAX(script_id) AS sid FROM Scripts")
@@ -288,6 +300,39 @@ def addscript_2_db():
     return render_template("error.html", redo_link="/addscript", action="add your script")
 
   return render_template("success.html", action="adding your script")
+
+@app.route('/addcharacter')
+def addcharacter():
+  return render_template("addcharacter.html")  
+
+@app.route('/addcharacter_2_db', methods=['POST'])
+def addcharacter_2_db():
+  # Define error links and actions
+  redo_link = "/addcharacter"
+  action = "add your character"
+  try:
+    name = request.form['name']
+    age = int(request.form['age'])
+    if len(request.form.getlist('requirements[]')) > array_limit: 
+      raise Exception()
+    else:
+      requirements = filter(None, request.form.getlist('requirements[]'))
+  except:
+    return errorpage(message="There appears to be a problem with your inserted values.",redo_link=redo_link, action=action )
+
+  # Find the last added character id then generate the next character id
+  cursor = g.conn.execute("SELECT MAX(char_id) AS cid FROM Characters")
+  new_cid = int(cursor.fetchone()['cid'])+1
+  cursor.close()
+
+
+  try:
+    g.conn.execute(text('INSERT INTO Characters VALUES (:i, :n, :r, :a)'), i=new_cid, n=name, r=requirements, a=age)
+
+  except:
+    return errorpage(redo_link=redo_link, action=action)
+
+  return render_template("success.html", action="adding your character")
 
 
 @app.route('/addproduction')
@@ -302,12 +347,6 @@ def addproduction():
 
 @app.route('/addproduction_2_db', methods=['POST'])
 def addproduction_2_db():
-  # Define our error function.
-  def errorpage(message=None):
-    if message == None:
-      return render_template("error.html", redo_link="/addproduction", action="add your production")
-    else:
-      return render_template("error.html",redo_link="/addproduction", action="add your production", message=message)
 
   # First gather the form data
   try:
@@ -379,15 +418,54 @@ def selectproduction_2_edit():
 
 @app.route('/addscene')
 def addscene():
-  # Get the production 
-  prod_id=int(request.args.get('production'))
+  # Determine the production to which you are adding a scene
+  prod_id=int(request.args.get('production')) 
+ 
+  # Provide a list of scripts.
+  cursor = g.conn.execute("SELECT script_id,title FROM Scripts")
+  script_list = []
+  for script in cursor:
+    script_list.append(script)
+  cursor.close()
+
   try:
     cursor = g.conn.execute(text("SELECT prod_title FROM Productions WHERE prod_id=:p"),p=prod_id)
     title = cursor.fetchone()['prod_title']
-    return render_template("addscene.html",production=prod_id, title=title) 
+    return render_template("addscene.html",production=prod_id, prod_title=title, scripts=script_list) 
   except:
     return render_template("error.html", redo_link="/productionselect", action="select a production")
    
+@app.route('/addscene_2_db', methods=['POST'])
+def addscene_2_db():
+  # Gather the form variables
+  try:
+    prod_id = int(request.form['production'])
+    script = (request.form['script'].split(' - '))[0]
+    lower_page = request.form['lower_page'] 
+    upper_page = request.form['upper_page'] 
+    description = request.form['description']
+    # Make sure the lists of arrays are not larger than the limit
+
+    if len(request.form.getlist('sfx[]')) > array_limit or \
+       len(request.form.getlist('props[]')) > array_limit or \
+       len(request.form.getlist('stunts[]')) > array_limit:
+      raise Exception()
+    else:
+      sfx = filter(None, request.form.getlist('sfx[]')) # Remove any empty strings from the SFX array
+      props = filter(None, request.form.getlist('props[]')) # Remove any empty strings from the SFX array
+      stunts = filter(None, request.form.getlist('stunts[]')) # Remove any empty strings from the SFX array
+
+    weather = request.form['weather']
+    time_of_day = request.form['tod']
+    location = request.form['location']
+    cost = float(request.form['cost'])
+
+
+  except:
+    return render_template("error.html",redo_link="/productionselect", action="select your production again")
+   
+  return render_template("index.html") 
+  
 
 
 if __name__ == "__main__":

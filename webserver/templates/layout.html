@@ -13,10 +13,10 @@
 {#          <a href="/user-console">My Profile</a>#}
           <nav>
               <ul>
-                  <li>Scripts
+                  <li>Scripts and Characters
                       <ul>
                           <li><a href="/addscript">Add a Script</a></li>
-                          <li>Find a Script</li> 
+                          <li><a href="/addcharacter">Add a Character</a></li> 
                       </ul>
                   </li>
                   <li>Productions
@@ -40,8 +40,7 @@
       {% block content %}{% endblock %}
     </div>
 
-    <script src="{{ url_for('static', filename='cookies.js') }}" /></script>
-    <script src="{{ url_for('static', filename='initialize.js') }}"></script>
+    <script src="{{ url_for('static', filename='main.js') }}" /></script>
 
   </body>
 </html>
