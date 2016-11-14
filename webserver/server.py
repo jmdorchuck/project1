@@ -19,6 +19,7 @@ import os
 from sqlalchemy import *
 from sqlalchemy.pool import NullPool
 from flask import Flask, abort, request, render_template, g, redirect, Response, make_response, url_for, session, escape
+from psycopg2.extras import Range, NumericRange
 
 from operator import itemgetter
 
@@ -440,10 +441,10 @@ def addscene_2_db():
   # Gather the form variables
   try:
     prod_id = request.form['production']
-    print prod_id
     script = (request.form['script'].split(' - '))[0]
-    lower_page = request.form['lower_page'] 
-    upper_page = request.form['upper_page'] 
+    lower_page = int(request.form['lower_page']) 
+    upper_page = int(request.form['upper_page']) 
+    page_range = NumericRange(lower=lower_page,upper=upper_page)
     description = request.form['description']
 
     # Make sure the lists of arrays are not larger than the limit
@@ -459,6 +460,7 @@ def addscene_2_db():
     time_of_day = request.form['tod']
     location = request.form['location']
     cost = float(request.form['cost'])
+    budget = float(request.form['budget'])
   except:
     return errorpage(message="There was a problem with your input",
                      redo_link="/productionselect", 
@@ -466,21 +468,22 @@ def addscene_2_db():
 
   # Determine the new scene id.
 
-  cursor = g.conn.execute("SELECT MAX(scene_id) AS sid FROM Scenes")
+  cursor = g.conn.execute(text("SELECT MAX(scene_id) AS sid FROM Scenes"))
   new_sid = int(cursor.fetchone()['sid'])+1
   cursor.close()
-
-  insert_cmd = "INSERT INTO Scenes VALUES(:s, :d, :f, :p, :t, :w, :o, :c, :l)"
-  g.conn.execute(text(insert_cmd),s=new_sid,d=description,f=sfx,p=props,
-                                    t=stunts,w=weather,o=time_of_day,
-                                    c=cost, l=location)
 
 
 
   try:
-    print()
+    insert_scenes_cmd = "INSERT INTO Scenes VALUES(:s, :d, :f, :p, :t, :w, :o, :c, :l)"
+    g.conn.execute(text(insert_scenes_cmd),s=new_sid,d=description,f=sfx,p=props,
+                                    t=stunts,w=weather,o=time_of_day,
+                                    c=cost, l=location)
+    insert_made_of_cmd = "INSERT INTO Made_of VALUES(:c, :p, :s, :b, :r)"
+    g.conn.execute(text(insert_made_of_cmd), c=script, p=prod_id, s=new_sid, b=budget, r=page_range)
+
   except:
-    return errorpage(message="There was a problem with your input",
+    return errorpage(message="There was a problem with the database",
                      redo_link="/addscene?production="+str(prod_id), 
                      action="add your scene again")
 
