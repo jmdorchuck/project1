@@ -624,6 +624,24 @@ def managescene_n_db():
   except:
     return errorpage(redo_link=redo_link, action=action, message="Problem entering portrayal values.")
 
+@app.route('/findtalent')
+def findtalent():
+  try:
+    select_actor_cmd = ("SELECT U.name,A.Haircolor, A.skills, A.eye_color, A.age_Range "
+                        "FROM Actors as A, Users as U "
+                        "WHERE A.uid=U.uid")
+
+    cursor = g.conn.execute(text(select_actor_cmd))
+    actor_list=[]
+    for actor in cursor:
+      actor_list.append(actor)
+    cursor.close()
+
+    print(actor_list)
+    return render_template("findtalent.html", actors=actor_list)
+
+  except:
+    return errorpage()
 
 if __name__ == "__main__":
   import click
