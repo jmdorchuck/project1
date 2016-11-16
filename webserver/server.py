@@ -53,7 +53,7 @@ DATABASEURI = "postgresql://thc2125:ejv8d@104.196.175.120/postgres"
 #
 # This line creates a database engine that knows how to connect to the URI above
 #
-engine = create_engine(DATABASEURI)
+engine = create_engine(DATABASEURI, echo=True)
 
 
 #
@@ -227,7 +227,6 @@ def login():
 @app.route('/login_2_site', methods=['POST'])
 def login_2_site():
   uid = request.form['uid']
-  print uid
   count = g.conn.execute("SELECT COUNT(uid) FROM Users WHERE uid=%s",(uid,)).rowcount
   
   if count == 1:
@@ -264,8 +263,12 @@ def register_4_site():
 
     # Try to insert the user into the Users table
     try:
-      insert_cmd = "INSERT INTO Users VALUES (:u, :n, :p, :c, :e)"
-      g.conn.execute(text(insert_cmd), u=new_uid, n=name, p=phone_num, c=past_cred, e=email_address)
+      select_cmd = "SELECT uid FROM Users where uid=:u"
+      cursor = g.conn.execute(text(select_cmd), u=new_uid)
+      if cursor.rowcount==0:
+        insert_cmd = "INSERT INTO Users VALUES (:u, :n, :p, :c, :e)"
+        g.conn.execute(text(insert_cmd), u=new_uid, n=name, p=phone_num, c=past_cred, e=email_address)
+      cursor.close
     except:
       return render_template("registration-error.html")
 
@@ -292,13 +295,21 @@ def addscript_2_db():
 
   # Find the last added script id then generate the next script id
   cursor = g.conn.execute("SELECT MAX(script_id) AS sid FROM Scripts")
-  new_sid = int(cursor.fetchone()['sid'])+1
+  try:
+    new_sid = int(cursor.fetchone()['sid'])+1
+  except: 
+    new_sid = 0
   cursor.close()
  
   try:
-    g.conn.execute(text('INSERT INTO Scripts VALUES (:i, :t, :p, :w)'), i=new_sid, t=title, p=page_count, w=writer)
+    select_cmd = "SELECT script_id FROM Scripts WHERE script_id=:s"
+    cursor = g.conn.execute(text(select_cmd), s=new_sid)
+    if cursor.rowcount==0:
+      insert_cmd = "INSERT INTO Scripts VALUES (:i, :t, :p, :w)"
+      g.conn.execute(text(insert_cmd), i=new_sid, t=title, p=page_count, w=writer)
+    cursor.close
   except:
-    return render_template("error.html", redo_link="/addscript", action="add your script")
+    return errorpage(redo_link="/addscript", action="add your script")
 
   return render_template("success.html", action="adding your script")
 
@@ -311,19 +322,24 @@ def addcharacter_2_db():
   # Define error links and actions
   redo_link = "/addcharacter"
   action = "add your character"
+  
+  # Gather the form variables
   try:
     name = request.form['name']
     age = int(request.form['age'])
     if len(request.form.getlist('requirements[]')) > array_limit: 
       raise Exception()
-    else:
-      requirements = filter(None, request.form.getlist('requirements[]'))
+    requirements = filter(None, request.form.getlist('requirements[]'))
   except:
     return errorpage(message="There appears to be a problem with your inserted values.",redo_link=redo_link, action=action )
 
   # Find the last added character id then generate the next character id
   cursor = g.conn.execute("SELECT MAX(char_id) AS cid FROM Characters")
-  new_cid = int(cursor.fetchone()['cid'])+1
+
+  try: 
+    new_cid = int(cursor.fetchone()['cid'])+1
+  except:
+    new_cid = 0
   cursor.close()
 
 
@@ -335,16 +351,19 @@ def addcharacter_2_db():
 
   return render_template("success.html", action="adding your character")
 
-
 @app.route('/addproduction')
 def addproduction():
+  
   cursor = g.conn.execute("SELECT P.producer_id,U.name FROM Producers AS P, Users as U WHERE P.uid=U.uid")
   producer_list = []
   for producer in cursor:
     producer_list.append(producer)
   cursor.close()
-  print(producer)
-  return render_template("addproduction.html", producerlist=producer_list)
+  if len(producer_list>0):
+    return render_template("addproduction.html", producerlist=producer_list)
+  else:
+    return errorpage(message="Please add a producer before trying to add a "
+                             "production")
 
 @app.route('/addproduction_2_db', methods=['POST'])
 def addproduction_2_db():
@@ -361,19 +380,27 @@ def addproduction_2_db():
   # Determine the new production id.
 
   cursor = g.conn.execute("SELECT MAX(prod_id) AS pid FROM Productions")
-  new_pid = int(cursor.fetchone()['pid'])+1
+  try:
+    new_pid = int(cursor.fetchone()['pid'])+1
+  except:
+    new_pid = 0
   cursor.close()
 
   # Now, we add the production to the production table  
   try: 
     g.conn.execute(text('INSERT INTO Productions VALUES (:p, :b)'), p=new_pid, b=budget)
   except:
-    return errorpage() 
+    return errorpage(message="There was a problem with the values you are trying to add.") 
 
   # Now, we add the producer/production relationship to the "Produced by" table
   try: 
     for producers in producer_ids:
-      g.conn.execute(text('INSERT INTO Produced_by VALUES (:p, :r, :c)'), p=new_pid, r=producers, c=production_company)
+      select_cmd = "SELECT prod_id, producer_id FROM Produced_By "
+                   "WHERE prod_id=:p AND producer_id=:r"
+      cursor = g.conn.execute(text(select_cmd), p=new_pid, r=producers)
+      if cursor == 0
+        insert_cmd = "INSERT INTO Produced_by VALUES (:p, :r, :c)"
+      g.conn.execute(text(insert_cmd), p=new_pid, r=producers, c=production_company)
   except:
     # If we fail, we have to delete any existing records of the production
     g.conn.execute(text('DELETE FROM Produced_by WHERE prod_id=:p'), p=new_pid)
@@ -444,23 +471,26 @@ def addscene():
     return render_template("addscene.html",prod_id=prod_id, prod_title=title, 
                             scripts=script_list, characters=character_list) 
   except:
-    return render_template("error.html", redo_link="/productionselect", action="select a production")
+    return errorpage()
    
 @app.route('/addscene_2_db', methods=['POST'])
 def addscene_2_db():
+
   # Gather the form variables
   try:
-    prod_id = request.form['production']
-    script = (request.form['script'].split(' - '))[0]
-    lower_page = int(request.form['lower_page']) 
-    upper_page = int(request.form['upper_page']) 
-    page_range = NumericRange(lower=lower_page,upper=upper_page)
+    prod_id = int(request.form['production'])
+    script = int((request.form['script'].split(' - '))[0])
+    first_page = int(request.form['lower_page']) 
+    second_page = int(request.form['upper_page']) 
+    page_range = (NumericRange(lower=first_page,upper=second_page)
+                  if first_page<second_page 
+                  else NumericRange(lower=second_page,upper=first_page))
     description = request.form['description']
 
     # Make sure the lists of arrays are not larger than the limit
     if (len(request.form.getlist('sfx[]')) > array_limit or 
-       len(request.form.getlist('props[]')) > array_limit or 
-       len(request.form.getlist('stunts[]')) > array_limit):
+        len(request.form.getlist('props[]')) > array_limit or 
+        len(request.form.getlist('stunts[]')) > array_limit):
       raise Exception()
     else:
       sfx = filter(None, request.form.getlist('sfx[]')) # Remove any empty strings from the SFX array
@@ -481,21 +511,24 @@ def addscene_2_db():
   # Determine the new scene id.
 
   cursor = g.conn.execute(text("SELECT MAX(scene_id) AS sid FROM Scenes"))
-  new_sid = int(cursor.fetchone()['sid'])+1
+  try:
+    new_sid = int(cursor.fetchone()['sid'])+1
+  except:
+    new_sid = 0
   cursor.close()
-
-
 
   try:
     # Add to the Scenes Table
-    insert_scenes_cmd = "INSERT INTO Scenes VALUES(:s, :d, :f, :p, :t, :w, :o, :c, :l)"
-    g.conn.execute(text(insert_scenes_cmd),s=new_sid,d=description,f=sfx,p=props,
-                                    t=stunts,w=weather,o=time_of_day,
-                                    c=cost, l=location)
+    insert_scenes_cmd = ("INSERT INTO Scenes "
+                        "VALUES(:s, :d, :f, :p, :t, :w, :o, :c, :l)")
+    g.conn.execute(text(insert_scenes_cmd),s=new_sid,d=description,f=sfx, 
+                                           p=props, t=stunts, w=weather, 
+                                           o=time_of_day, c=cost, l=location)
    
     # Add to the "Scripts and Productions are Made_Of Scenes" Table
     insert_made_of_cmd = "INSERT INTO Made_of VALUES(:c, :p, :s, :b, :r)"
-    g.conn.execute(text(insert_made_of_cmd), c=script, p=prod_id, s=new_sid, b=budget, r=page_range)
+    g.conn.execute(text(insert_made_of_cmd), c=script, p=prod_id, s=new_sid, 
+                                             b=budget, r=page_range)
 
     # Add to the "Scenes Feature Characters" Table
     for cid in character_ids:
@@ -536,10 +569,10 @@ def managescene():
 
     # Create a list of roles
     cursor = g.conn.execute(text("SELECT char_id,char_name "
-                           + "FROM Characters "
-                           + "WHERE char_id IN (SELECT char_id "
-                                             + "FROM Feature "
-                                            + "WHERE scene_id=:s)"),
+                                 "FROM Characters "
+                                 "WHERE char_id IN (SELECT char_id "
+                                 "FROM Feature "
+                                 "WHERE scene_id=:s)"),
                               s=scene_id) 
 
     character_list = []
@@ -550,17 +583,17 @@ def managescene():
 
     # Create a list of possible crew 
     cursor = g.conn.execute(text("SELECT Crew.cid,Users.name "
-                           "FROM Crew, Users "
-                           "WHERE Crew.uid=Users.uid"))
+                                 "FROM Crew, Users "
+                                 "WHERE Crew.uid=Users.uid"))
     crew_list = []
     for crew in cursor:
       crew_list.append(crew)
     cursor.close()
 
     # Create a list of possible filming locations 
-    cursor = g.conn.execute(text("SELECT F.filming_loc_id,L.description "
-                           "FROM Filming_Locations as F, Locations as L "
-                           "WHERE F.loc_id=L.loc_id"))
+    cursor = g.conn.execute(text("SELECT F.filming_loc_id, L.name, L.description "
+                                 "FROM Filming_Locations as F, Locations as L "
+                                 "WHERE F.loc_id=L.loc_id"))
     location_list = []
     for location in cursor:
       location_list.append(location)
@@ -582,47 +615,81 @@ def managescene_n_db():
   # Define error strings
   redo_link = "/productionselect"
   action = "select your production again"
+  # Gather the variables
 
-   # Gather the variables
+
+  scene_id = int(request.form['scene'])
+  actors = request.form.getlist('actors')
+  actor_ids = map(lambda a: int((a.split(' - '))[0]), actors)
+  characters = request.form.getlist('characters')
+  char_ids = map(lambda c: int(c), characters)
+  prod_id = int(request.form['production'])
+
+
   try:
     # Portrays Variables
-    scene_id = int(request.args.get('scene'))
-    actor_ids = request.form.getlist('actors')
-    char_ids = request.form.getlist('characters')
- 
-    print 1
-    print actor_ids
-    print char_ids
+    # scene_id from above
+
+
+    # Works_On Variables
+    crew_size = int(request.form['crewsize'])    
+    crew_ids_roles_raw = []
+    for i in range(crew_size):
+      print 'crew'+str(i)
+      crew_ids_roles_raw.append(request.form.getlist('crew'+str(i)))
+    crew_ids_roles = map(lambda c: [(c[0].split(' - '))[0],(c[0].split(' - '))[1],c[1]], crew_ids_roles_raw)
+    print crew_ids_roles
 
     '''
-    # Works_On Variables
-    crew_id =
-    prod_id = int(request.args.get('production'))
-    # scene_id from above
-    role = 
-
     # Shot_At Variables
-    # scene_id
+    # scene_id from above
     filming_loc_id = 
     shoot_time =
     shoot_date = 
-    ''' 
-
+    '''
   except:
-    errorpage(redo_link=redo_link, action=action)
+    return errorpage(redo_link=redo_link, action=action)
 
   # Insert the Portrays data in the database
-  try:   
-    print(len(char_ids) != len(actor_ids))
-
+  try:
     if len(char_ids) != len(actor_ids):
       raise Exception
-    for i in range(len(char_ids)):
-      insert_portrays_cmd="INSERT INTO Portrays VALUES(:a, :c)"
-      g.conn.execute(text(insert_portrays_cmd),a=actor_ids[i], c=char_ids[i]) 
+
+    select_portrays_test="SELECT aid, char_id FROM portrays WHERE aid=:a AND char_id=:c"
+    insert_portrays_cmd="INSERT INTO Portrays VALUES(:a, :c)"
+
+    for ac,ch in zip(actor_ids,char_ids):
+      cursor = g.conn.execute(text(select_portrays_test),
+                                   a=ac,c=ch) 
+      if cursor.rowcount==0:
+        g.conn.execute(text(insert_portrays_cmd),a=ac, c=ch) 
+      cursor.close()
 
   except:
-    return errorpage(redo_link=redo_link, action=action, message="Problem entering portrayal values.")
+    return errorpage(message="There was a problem adding actor roles into the database.")
+
+  # Insert the Works_On data in the database
+  try:
+    select_works_on_test=("SELECT cid, prod_id, scene_id FROM Works_On "
+                         "WHERE cid=:c AND prod_id=:p AND scene_id=:s")
+    insert_works_on_cmd="INSERT INTO Works_On VALUES(:c, :p, :s, :r)"
+    for c in crew_ids_roles:
+      print c
+      cursor = g.conn.execute(text(select_works_on_test), c=c[0], 
+                              p=prod_id, s=scene_id,) 
+      if cursor.rowcount==0:
+        g.conn.execute(text(insert_works_on_cmd),c=c[0], 
+                                                 p=prod_id, s=scene_id, 
+                                                 r=c[2]) 
+
+      cursor.close()
+
+
+  except:
+    return errorpage(message="There was a problem adding crew roles into the database.")
+
+
+  return render_template("success.html", action="managing your scene")
 
 @app.route('/findtalent')
 def findtalent():
@@ -637,7 +704,6 @@ def findtalent():
       actor_list.append(actor)
     cursor.close()
 
-    print(actor_list)
     return render_template("findtalent.html", actors=actor_list)
 
   except:

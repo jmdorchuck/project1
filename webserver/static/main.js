@@ -1,5 +1,4 @@
 var textFieldCount=new Object();
-console.log(textFieldCount['sfx-text']);
 var textFieldLimit=50;
 
 function addTextField(parent_id, name, size) {

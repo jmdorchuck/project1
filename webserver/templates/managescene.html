@@ -1,5 +1,60 @@
 {% extends "layout.html" %}
 {% block content %}
+
+<script>
+var crewFieldCount=0;
+var crewFieldLimit=100;
+
+var crewMembers = [{% for c in crew %}"{{ c[0] }} - {{ c[1] }}",{% endfor %}];
+console.log(crewMembers);
+
+function addCrewSelectField(){
+    if(crewFieldCount>crewFieldLimit)
+        alert("You have reached the limit of additional text fields.");
+    else {
+       var parent_container = document.getElementById('crew-text');
+       var new_container = document.createElement('li');
+       // Create the dropdown of crew members
+       var new_select_label = document.createElement('label')
+       new_select_label.appendChild(document.createTextNode('Crew Member'));
+       var new_select = document.createElement('select');
+       new_select.setAttribute('name', 'crew'+crewFieldCount);
+       new_select.setAttribute('size', '1');
+       var new_option = [];
+       for(var i=0; i < crewMembers.length; i++){
+           new_option[i]=document.createElement('option')
+           new_option[i].appendChild(document.createTextNode(crewMembers[i]));
+           new_select.appendChild(new_option[i]);
+       }
+
+       // Create the Text input for the crew member's role
+       var new_input_label = document.createElement('label');
+       new_input_label.appendChild(document.createTextNode('Role'));
+       var new_input = document.createElement('input');
+       new_input.setAttribute('type', 'text');
+       new_input.setAttribute('name', 'crew'+crewFieldCount);
+       new_input.setAttribute('required','');
+       new_input.setAttribute('size', '60');
+
+       // Add the new elements to the new container 
+       new_container.appendChild(new_select_label); 
+       new_container.appendChild(new_select); 
+       new_container.appendChild(new_input_label); 
+       new_container.appendChild(new_input); 
+
+       // Add the new container to the parent and document
+       parent_container.appendChild(new_container);
+
+       // Update crew size counter.
+       crewFieldCount++;
+
+       //update the 'crewsize' hidden field
+       var csize=document.getElementById('msndb-crewsize');
+       csize.setAttribute('value',crewFieldCount);
+    }
+}
+</script>
+    
 <h2>Manage a given scene</h2> 
 
 <!-- Cast (portrays), crew (works on), location(i.e. shot at)-->
@@ -9,9 +64,9 @@
   <input type="hidden" name="scene" value="{{ scene }}">
 
   <ul>
-     <li><label for="msndb-actor">What actor will play each character?</label>
+     <li><label for="msndb-actor">Which actor will play each character?</label>
          <ul>{% for c in characters %}
-             <li><input type="hidden" name="characters" value="{{ c[0] }}">{{ c[1] }}: 
+             <li><input type="hidden" required name="characters" value="{{ c[0] }}">{{ c[1] }}: 
                  <select name= "actors">
                    {% for a in actors %}
        	           <option>{{ a[0] }} - {{ a[1] }}</option> 
@@ -21,10 +76,24 @@
               {% endfor %}
           </ul>
      </li>
+     <input type="hidden" name="crewsize" value="0" id="msndb-crewsize">
+     <li><label for="msndb-crew">Add crew members work in different roles.</label>
 
+         <ul id="crew-text">
+         </ul>
+         <button type="button" onclick="addCrewSelectField()">Add a crew member (limit to 50)</button></li>
 
+     </li>
+
+     <li><label for="msndb-loc">Add a filming location.</label>
+         <select name="location" id="msndb-loc" required>
+             {% for l in locations %}
+             <option>{{ l[0] }} - {{ l[1] }} - {{ l[2] }}</option>
+             {% endfor %}
+         </select>
+     </li>
   </ul>
- <input type="submit" value="Add Scene">
+ <input type="submit" value="Finish Scene Management">
 </form>
 
 {% endblock %}

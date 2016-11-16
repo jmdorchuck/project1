@@ -2,7 +2,8 @@
 {% block content %}
 
 <h2>Production Console</h2>
-
+<p>On this page, you can add scenes as well as manage personnel needs for any production.</p>
+<p>With "Manage", you can select the cast and crew who will be working on a given scene.</p>
 <table><tr><th>Page Numbers</th><th>Scene Description</th></tr>
        {% for s in scenelist %}
        <tr><td>{{ s[2].lower }}-{{ s[2].upper }}</td>
