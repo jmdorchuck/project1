@@ -16,6 +16,7 @@ Read about it online.
 """
 
 import os
+from datetime import datetime, time, date
 from sqlalchemy import *
 from sqlalchemy.pool import NullPool
 from flask import Flask, abort, request, render_template, g, redirect, Response, make_response, url_for, session, escape
@@ -359,7 +360,7 @@ def addproduction():
   for producer in cursor:
     producer_list.append(producer)
   cursor.close()
-  if len(producer_list>0):
+  if len(producer_list)>0:
     return render_template("addproduction.html", producerlist=producer_list)
   else:
     return errorpage(message="Please add a producer before trying to add a "
@@ -395,10 +396,10 @@ def addproduction_2_db():
   # Now, we add the producer/production relationship to the "Produced by" table
   try: 
     for producers in producer_ids:
-      select_cmd = "SELECT prod_id, producer_id FROM Produced_By "
-                   "WHERE prod_id=:p AND producer_id=:r"
+      select_cmd = ("SELECT prod_id, producer_id FROM Produced_By "
+                    "WHERE prod_id=:p AND producer_id=:r")
       cursor = g.conn.execute(text(select_cmd), p=new_pid, r=producers)
-      if cursor == 0
+      if cursor.rowcount == 0:
         insert_cmd = "INSERT INTO Produced_by VALUES (:p, :r, :c)"
       g.conn.execute(text(insert_cmd), p=new_pid, r=producers, c=production_company)
   except:
@@ -618,17 +619,17 @@ def managescene_n_db():
   # Gather the variables
 
 
-  scene_id = int(request.form['scene'])
-  actors = request.form.getlist('actors')
-  actor_ids = map(lambda a: int((a.split(' - '))[0]), actors)
-  characters = request.form.getlist('characters')
-  char_ids = map(lambda c: int(c), characters)
-  prod_id = int(request.form['production'])
 
 
   try:
     # Portrays Variables
     # scene_id from above
+    scene_id = int(request.form['scene'])
+    actors = request.form.getlist('actors')
+    actor_ids = map(lambda a: int((a.split(' - '))[0]), actors)
+    characters = request.form.getlist('characters')
+    char_ids = map(lambda c: int(c), characters)
+    prod_id = int(request.form['production'])
 
 
     # Works_On Variables
@@ -640,15 +641,24 @@ def managescene_n_db():
     crew_ids_roles = map(lambda c: [(c[0].split(' - '))[0],(c[0].split(' - '))[1],c[1]], crew_ids_roles_raw)
     print crew_ids_roles
 
-    '''
-    # Shot_At Variables
-    # scene_id from above
-    filming_loc_id = 
-    shoot_time =
-    shoot_date = 
-    '''
+
   except:
     return errorpage(redo_link=redo_link, action=action)
+
+  try:
+    # Shot_At Variables
+    # scene_id from above
+    filming_loc_id =  int((request.form['location']).split(' - ')[0])
+    shoot_time = (datetime.strptime(request.form['shoot_time'], "%H:%M")).time()
+    shoot_date = (datetime.strptime(request.form['shoot_date'], "%m/%d/%Y")).date()
+
+  except: 
+    return errorpage(message="Please use the following input for dates: "
+                             "mm/dd/yyyy"
+                             "and the following for times (using 24-hour conventions):"
+                             "hh:mm",
+                             redo_link=redo_link, action=action)
+
 
   # Insert the Portrays data in the database
   try:
@@ -684,9 +694,24 @@ def managescene_n_db():
 
       cursor.close()
 
-
   except:
     return errorpage(message="There was a problem adding crew roles into the database.")
+
+
+  # Insert the Shot_At data in the database
+  try:
+    select_shot_at_test=("SELECT scene_id, shoot_date FROM Shot_At "
+                         "WHERE scene_id=:s AND shoot_date=:d")
+    insert_works_on_cmd="INSERT INTO Shot_At VALUES(:s, :l, :t, :d)"
+    cursor = g.conn.execute(text(select_shot_at_test), s=scene_id, d=shoot_date) 
+    if cursor.rowcount==0:
+      g.conn.execute(text(insert_works_on_cmd), s=scene_id, l=filming_loc_id,
+                                                t=shoot_time, d=shoot_date)
+
+      cursor.close()
+
+  except:
+    return errorpage(message="There was a problem adding time and location data into the database.")
 
 
   return render_template("success.html", action="managing your scene")

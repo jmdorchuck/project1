@@ -92,6 +92,11 @@ function addCrewSelectField(){
              {% endfor %}
          </select>
      </li>
+     <li><label for="msndb-date">What day will you shoot the scene? (mm/dd/yyyy)</label>
+         <input type="date" name="shoot_date" id="msndb-date" required>
+         <label for="msndb-time">What time will you shoot the scene? (24-hr, hh:mm)</label>
+	 <input type="time" name="shoot_time" id="msndb_time" required>	
+     </li>
   </ul>
  <input type="submit" value="Finish Scene Management">
 </form>
