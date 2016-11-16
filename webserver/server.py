@@ -221,6 +221,7 @@ def errorpage(message=None, redo_link="/index", action="try again"):
 # Set the array limit for array inputs
 array_limit=50
 
+'''
 @app.route('/login')
 def login():
   return render_template("login.html")  
@@ -275,10 +276,12 @@ def register_4_site():
 
     # Try to insert the user into the Crew, Actors, and Producers tables respectively.
     # I need to come back to this-the previous code was ugly as sin. 
-    return render_template("registered.html",name=name)  
+    return redirect("registered.html",name=name)  
 
   else:
     return render_template("registration-error.html")
+
+'''
 
 @app.route('/addscript')
 def addscript():
