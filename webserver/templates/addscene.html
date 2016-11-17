@@ -14,7 +14,7 @@
      </li>
 
     <li><label for="as2db-pages">What pages is it on?</label>
-        <p id="as2db-pages"><input type="number" step="1" name="lower_page" size=3 required>-<input type="number" step="1" name="upper_page" size=3 required></p></li>
+        <p id="as2db-pages"><input type="number" step="1" name="lower_page" size=3 min="0" required>-<input type="number" step="1" name="upper_page" size=3 min="0" required></p></li>
  
 
      <li><label for="as2db-description">Scene Description:</label>
@@ -51,10 +51,10 @@
 
    
     <li><label for="as2db-cost">Estimated Cost:</label>
-     <input type="number" step="any" size="11" name="cost" id="as2db-cost"></li>
+     <input type="number" min="0" step="any" size="11" name="cost" id="as2db-cost"></li>
 
     <li><label for="as2db-budget">Budget:</label>
-     <input type="number" step="any" size="11" name="budget" id="as2db-budget"></li>
+     <input type="number" min="0" step="any" size="11" name="budget" id="as2db-budget"></li>
 
     <li><label for="as2db-characters">Which characters are in the scene?</label>
         <select name="characters" multiple>

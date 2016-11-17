@@ -10,7 +10,7 @@
 
 <form method="POST" action="/selectproduction_2_edit">
     <p>Which production would you like to manage?</p>
-    <p><select name="prod2edit">
+    <p><select name="prod2edit" required>
         {% for p in productionlist %}
         <option> {{ p[0] }} - {{ p[1] }} </option>
         {% endfor %} 

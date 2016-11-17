@@ -212,7 +212,7 @@ def another():
 #  return redirect('/')
 
 # Define our error function.
-def errorpage(message=None, redo_link="/index", action="try again"):
+def errorpage(message=None, redo_link="/index", action="try"):
   if message==None:
     return render_template("error.html", redo_link="/addproduction", action="add your production")
   else:
@@ -222,8 +222,8 @@ def errorpage(message=None, redo_link="/index", action="try again"):
 array_limit=50
 
 '''
-@app.route('/login')
-def login():
+@app.route('/adduser')
+def adduser():
   return render_template("login.html")  
 
 @app.route('/login_2_site', methods=['POST'])
@@ -239,7 +239,8 @@ def login_2_site():
     resp.set_cookie('name',name)
     cursor.close()
     return resp
-
+'''
+'''
 @app.route('/register')
 def register():
 #  cursor = g.conn.execute("SELECT name,password FROM Users")
@@ -330,10 +331,17 @@ def addcharacter_2_db():
   # Gather the form variables
   try:
     name = request.form['name']
-    age = int(request.form['age'])
-    if len(request.form.getlist('requirements[]')) > array_limit: 
-      raise Exception()
-    requirements = filter(None, request.form.getlist('requirements[]'))
+    try:
+      age = int(request.form['age'])
+    except:
+      print "error"
+      age=0
+    try:
+      if len(request.form.getlist('requirements[]')) > array_limit: 
+        raise Exception()
+      requirements = filter(None, request.form.getlist('requirements[]'))
+    except:
+      requirements='null'
   except:
     return errorpage(message="There appears to be a problem with your inserted values.",redo_link=redo_link, action=action )
 
@@ -351,7 +359,7 @@ def addcharacter_2_db():
     g.conn.execute(text('INSERT INTO Characters VALUES (:i, :n, :r, :a)'), i=new_cid, n=name, r=requirements, a=age)
 
   except:
-    return errorpage(redo_link=redo_link, action=action)
+    return errorpage(message="problem inserting into db", redo_link=redo_link, action=action)
 
   return render_template("success.html", action="adding your character")
 
@@ -374,10 +382,17 @@ def addproduction_2_db():
 
   # First gather the form data
   try:
-    production_company = request.form['production_company']  
+    title = request.form['title']
+    try:
+      production_company = request.form['production_company']  
+    except:
+      production_company = 'null'
     producers = request.form.getlist('producers') 
     producer_ids = map(lambda p: int((p.split(' - '))[0]), producers)
-    budget = float(request.form['budget'])
+    try:
+      budget = float(request.form['budget'])
+    except:
+      budget = 0
 
   except:
     return errorpage() 
@@ -392,7 +407,7 @@ def addproduction_2_db():
 
   # Now, we add the production to the production table  
   try: 
-    g.conn.execute(text('INSERT INTO Productions VALUES (:p, :b)'), p=new_pid, b=budget)
+    g.conn.execute(text('INSERT INTO Productions VALUES (:p, :b, :t)'), p=new_pid, b=budget, t=title)
   except:
     return errorpage(message="There was a problem with the values you are trying to add.") 
 

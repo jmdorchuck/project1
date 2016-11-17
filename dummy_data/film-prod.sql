@@ -73,7 +73,7 @@ CREATE TABLE Scripts(
 CREATE TABLE Productions(
             prod_id int,
             total_budget real,
-            prod_title text, -- added for UI purposes
+            prod_title text NOT NULL, -- added for UI purposes
             PRIMARY KEY(prod_id)
 );
 
