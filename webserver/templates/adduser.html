@@ -36,6 +36,33 @@
             </div>
         </li>
         <li><input type="checkbox" name="users_type" value="{{ types[1] }}">{{ types[1] }}</li>
+            <ul><li><label for="au2db-haircolor">Haircolor:</label>
+                <input type="text" name="haircolor" id="au2db-haircolor" size=100>
+                </li>
+                <li><label for="au2db-eyecolor">Eyecolor:</label>
+                <input type="text" name="eyecolor" id="au2db-eyecolor" size=100>
+                </li>
+                <li><label for="au2db-ethnicity">Ethnicity:</label>
+                <input type="text" name="ethnicity" id="au2db-ethnicity" size=100>
+                </li>
+                <li><label for="as2db-pages">Age-Range:</label>
+                <p id="as2db-pages"><input type="number" step="1" 
+                                           name="lower_age" size=3 min="0">
+                                   -<input type="number" 
+                                           step="1" name="upper_age" size=3 min="0"></p></li>
+
+
+                <li><label>Skills:</label>
+                    <ul id="skills-text">
+                        <li><label><input type="text" name="skills[]" size=60></li>
+                    </ul>
+                    <button type="button" onclick="addTextField('skills-text','skills[]',60)">Add another skill (limit to 50)</button></li>
+                <li>
+
+         </ul>
+ 
+        </li>
+            
         <li><input type="checkbox" name="users_type" value="{{ types[2] }}">{{ types[2] }}</li>
     </ul>
 

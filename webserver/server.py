@@ -84,7 +84,7 @@ def teardown_request(exception):
   except Exception as e:
     pass
 
-user_types = ['crew','actors','producers']
+user_types = ['crew','actor','producer']
 
 specialties =['Directing','Cinematography', 'Sound Mixing', 'Lighting', 
               'Gripwork', 'Script Supervision', 'Electrician', 'Costuming', 
@@ -268,8 +268,8 @@ def adduser_2_db():
       except:
         specialties=None
 
-      insert_cmd = "INSERT INTO Crew VALUES (:c, :u, :s)"
-      g.conn.execute(text(insert_cmd), c=new_cid, u=new_uid, s=specialties)
+      insert_crew_cmd = "INSERT INTO Crew VALUES (:c, :u, :s)"
+      g.conn.execute(text(insert_crew_cmd), c=new_cid, u=new_uid, s=specialties)
 
      
     except:
@@ -277,6 +277,75 @@ def adduser_2_db():
       delete_user_cmd="DELETE FROM Users WHERE uid=:n"
       g.conn.execute(text(delete_user_cmd),n=new_uid) 
       return errorpage(message="There was a problem adding your crew values-rolling back.")
+
+  # Actor
+  if 'actor' in users_types:
+    try:
+      # Generate a new crew id.
+      cursor = g.conn.execute("SELECT MAX(aid) AS aid FROM Actors")
+      new_aid = int(cursor.fetchone()['aid'])+1
+      cursor.close()
+
+      try:
+        haircolor=request.form['haircolor']
+      except:
+        haircolor=None
+
+      try:
+        eyecolor=request.form['eyecolor']
+      except:
+        eyecolor=None
+
+      try:
+        ethnicity=request.form['ethnicity']
+      except:
+        ethnicity=None
+
+      try:
+        skills=filter(None, request.form.getlist('skills'))
+      except:
+        skills=None
+
+      try:
+        first_age = int(request.form['lower_age']) 
+        second_age = int(request.form['upper_age']) 
+        age_range = (NumericRange(lower=first_age,upper=second_age)
+                    if first_age<second_age 
+                    else NumericRange(lower=second_age,upper=first_age))
+      except:
+        age_range=None
+
+
+      insert_actors_cmd = "INSERT INTO Actors VALUES (:a, :u, :h, :s, :e, :y, :g)"
+      g.conn.execute(text(insert_actors_cmd), a=new_aid, u=new_uid, h=haircolor, 
+                                              s=skills, e=ethnicity, y=eyecolor,
+                                              g=age_range)
+
+     
+    except:
+      # Roll back command
+      delete_user_cmd="DELETE FROM Users WHERE uid=:n"
+      g.conn.execute(text(delete_user_cmd),n=new_uid) 
+      return errorpage(message="There was a problem adding your actor values-rolling back.")
+
+
+  # Producer 
+  if 'producer' in users_types:
+    try:
+      # Generate a new producer id.
+      cursor = g.conn.execute("SELECT MAX(producer_id) AS pid FROM Producers")
+      new_pid = int(cursor.fetchone()['pid'])+1
+      cursor.close()
+
+      insert_producers_cmd = "INSERT INTO Producers VALUES (:p, :u)"
+      g.conn.execute(text(insert_producers_cmd), p=new_pid, u=new_uid)
+
+     
+    except:
+      # Roll back command
+      delete_user_cmd="DELETE FROM Users WHERE uid=:n"
+      g.conn.execute(text(delete_user_cmd),n=new_uid) 
+      return errorpage(message="There was a problem adding your producer values-rolling back.")
 
 
   return render_template("success.html", action="adding your user")
@@ -340,7 +409,7 @@ def addcharacter_2_db():
         raise Exception()
       requirements = filter(None, request.form.getlist('requirements[]'))
     except:
-      requirements='null'
+      requirements=None
   except:
     return errorpage(message="There appears to be a problem with your inserted values.",redo_link=redo_link, action=action )
 
@@ -385,7 +454,7 @@ def addproduction_2_db():
     try:
       production_company = request.form['production_company']  
     except:
-      production_company = 'null'
+      production_company = None
     producers = request.form.getlist('producers') 
     producer_ids = map(lambda p: int((p.split(' - '))[0]), producers)
     try:
