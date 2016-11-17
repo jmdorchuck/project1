@@ -804,7 +804,7 @@ def managescene_n_db():
 
 @app.route('/findtalent')
 def findtalent():
-  try:
+#  try:
     select_actor_cmd = ("SELECT U.name,A.Haircolor, A.skills, A.eye_color, A.age_Range "
                         "FROM Actors as A, Users as U "
                         "WHERE A.uid=U.uid")
@@ -812,12 +812,13 @@ def findtalent():
     cursor = g.conn.execute(text(select_actor_cmd))
     actor_list=[]
     for actor in cursor:
-      actor_list.append(actor)
+      actor_list.append(a)
     cursor.close()
-
+    for actor in actor_list:
+      actor['skills']=map(lambda s: str(s).replace(',','\n'),actor['skills'])
     return render_template("findtalent.html", actors=actor_list)
 
-  except:
+#  except:
     return errorpage()
 
 if __name__ == "__main__":
