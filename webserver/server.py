@@ -44,6 +44,7 @@ app = Flask(__name__, template_folder=tmpl_dir, static_folder=sttc_dir)
 #     DATABASEURI = "postgresql://ewu2493:foobar@<IP_OF_POSTGRE_SQL_SERVER>/postgres"
 #
 # Swap out the URI below with the URI for the database created in part 2
+
 # Anurag's Database:
 # DATABASEURI = "postgresql://arc2183:e7wtm@104.196.175.120/postgres"
 
@@ -55,34 +56,6 @@ DATABASEURI = "postgresql://thc2125:ejv8d@104.196.175.120/postgres"
 # This line creates a database engine that knows how to connect to the URI above
 #
 engine = create_engine(DATABASEURI, echo=True)
-
-
-#
-# START SQLITE SETUP CODE
-#
-# after these statements run, you should see a file test.db in your webserver/ directory
-# this is a sqlite database that you can query like psql typing in the shell command line:
-# 
-#     sqlite3 test.db
-#
-# The following sqlite3 commands may be useful:
-# 
-#     .tables               -- will list the tables in the database
-#     .schema <tablename>   -- print CREATE TABLE statement for table
-# 
-# The setup code should be deleted once you switch to using the Part 2 postgresql database
-#
-#engine.execute("""DROP TABLE IF EXISTS test;""")
-#engine.execute("""CREATE TABLE IF NOT EXISTS test (
-#  id serial,
-#  name text
-#);""")
-#engine.execute("""INSERT INTO test(name) VALUES ('grace hopper'), ('alan turing'), ('ada lovelace');""")
-#
-# END SQLITE SETUP CODE
-#
-
-
 
 @app.before_request
 def before_request():
@@ -111,10 +84,12 @@ def teardown_request(exception):
   except Exception as e:
     pass
 
-user_types = {'crew':'cid','actors':'aid','producers':'pid'}
+user_types = ['crew','actors','producers']
 
+specialties =['Directing','Cinematography', 'Sound Mixing', 'Lighting', 
+              'Gripwork', 'Script Supervision', 'Electrician', 'Costuming', 
+              'Special Effects', 'Makeup', 'Gaffing', 'Art Directing']
 
-#
 # @app.route is a decorator around index() that means:
 #   run index() whenever the user tries to access the "/" path using a GET request
 #
@@ -221,72 +196,96 @@ def errorpage(message=None, redo_link="/index", action="try"):
 # Set the array limit for array inputs
 array_limit=50
 
-'''
 @app.route('/adduser')
 def adduser():
-  return render_template("login.html")  
+  '''
+  cursor = g.conn.execute(text("SELECT * FROM specialties"))
+  specialties = []
+  for s in cursor:
+    specialties.append(s) 
+  print specialties
+  cursor.close()
+  '''
+  return render_template("adduser.html", types=user_types, specialties=specialties)  
 
-@app.route('/login_2_site', methods=['POST'])
-def login_2_site():
-  uid = request.form['uid']
-  count = g.conn.execute("SELECT COUNT(uid) FROM Users WHERE uid=%s",(uid,)).rowcount
-  
-  if count == 1:
-    cursor = g.conn.execute("SELECT name FROM Users WHERE uid=%s",(uid,))
-    name = cursor.first()['name']
-    resp = make_response(redirect('/'))
-    resp.set_cookie('uid',uid)
-    resp.set_cookie('name',name)
-    cursor.close()
-    return resp
-'''
-'''
-@app.route('/register')
-def register():
-#  cursor = g.conn.execute("SELECT name,password FROM Users")
-  return render_template("register.html", types=user_types.keys())  
+@app.route('/adduser_2_db', methods=['POST'])
+def adduser_2_db():
+  '''
+  cursor = g.conn.execute(text("SELECT enum_range(NULL::specialties)"))
+  specialties = list(cursor.fetchall())
+  cursor.close()
+  '''
+  # Define error links and actions
+  redo_link = "/adduser"
+  action = "add your user"
 
-@app.route('/register_4_site', methods=['POST'])
-def register_4_site():
+  try:
+    # Gather the form variables
+    name = request.form['name']
 
-  # Gather the form variables
-  name = request.form['name']
+    phone_num = (str(int(request.form['phone_num1'])) + '-'
+                + str(int(request.form['phone_num2'])) + '-'
+                + str(int(request.form['phone_num3'])))
+    if len(phone_num) != 12:
+       raise Exception()
 
-  phone_num = request.form['phone_num1']+'-'+request.form['phone_num2']+'-'+request.form['phone_num3']
-  if len(phone_num) != 12:
-    return render_template("registration-error.html")
-  past_cred_raw = request.form['past_cred'] 
-  past_cred = past_cred_raw if past_cred_raw != 'None' else 'null' 
-  email_address = request.form['email_address']
-  if (name != None and phone_num != None and email_address != None):
-    # First, we need to generate the next available uid.
+    email_address = request.form['email_address']
+
+    try:
+      past_cred = request.form['past_cred']
+    except:
+      past_cred = None 
+
+  except:
+    return errorpage(message="There was a problem with the values.", 
+              redo_link=redo_link, action=action)
+    
+  try:
+    # Generate a new user id.
     cursor = g.conn.execute("SELECT MAX(uid) AS uid FROM Users")
     new_uid = int(cursor.fetchone()['uid'])+1
     cursor.close()
 
-    # Try to insert the user into the Users table
+    insert_cmd = "INSERT INTO Users VALUES (:u, :n, :p, :c, :e)"
+    g.conn.execute(text(insert_cmd), u=new_uid, n=name, p=phone_num, c=past_cred, e=email_address)
+  except:
+    return errorpage(message="There was a problem inserting your values.", 
+                     redo_link=redo_link, action=action)
+
+  # Get values for the other user types.
+  users_types = request.form.getlist('users_type') 
+  print users_types
+  # Crew
+  if 'crew' in users_types:
     try:
-      select_cmd = "SELECT uid FROM Users where uid=:u"
-      cursor = g.conn.execute(text(select_cmd), u=new_uid)
-      if cursor.rowcount==0:
-        insert_cmd = "INSERT INTO Users VALUES (:u, :n, :p, :c, :e)"
-        g.conn.execute(text(insert_cmd), u=new_uid, n=name, p=phone_num, c=past_cred, e=email_address)
-      cursor.close
+      # Generate a new crew id.
+      cursor = g.conn.execute("SELECT MAX(cid) AS cid FROM Crew")
+      new_cid = int(cursor.fetchone()['cid'])+1
+      cursor.close()
+
+      try:
+        specialties=request.form.getlist('specialties')
+      except:
+        specialties=None
+
+      insert_cmd = "INSERT INTO Crew VALUES (:c, :u, :s)"
+      g.conn.execute(text(insert_cmd), c=new_cid, u=new_uid, s=specialties)
+
+     
     except:
-      return render_template("registration-error.html")
+      # Roll back command
+      delete_user_cmd="DELETE FROM Users WHERE uid=:n"
+      g.conn.execute(text(delete_user_cmd),n=new_uid) 
+      return errorpage(message="There was a problem adding your crew values-rolling back.")
 
-    # Try to insert the user into the Crew, Actors, and Producers tables respectively.
-    # I need to come back to this-the previous code was ugly as sin. 
-    return redirect("registered.html",name=name)  
 
-  else:
-    return render_template("registration-error.html")
+  return render_template("success.html", action="adding your user")
 
-'''
 
 @app.route('/addscript')
 def addscript():
   return render_template("addscript.html")  
+  
 
 @app.route('/addscript_2_db', methods=['POST'])
 def addscript_2_db():
@@ -681,7 +680,7 @@ def managescene_n_db():
   # Insert the Portrays data in the database
   try:
     if len(char_ids) != len(actor_ids):
-      raise Exception
+      raise Exception()
 
     select_portrays_test="SELECT aid, char_id FROM portrays WHERE aid=:a AND char_id=:c"
     insert_portrays_cmd="INSERT INTO Portrays VALUES(:a, :c)"

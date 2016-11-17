@@ -5,28 +5,13 @@ DROP TABLE IF EXISTS Users, Productions, Scripts, Crew, Actors, Producers,
 
 DROP TYPE IF EXISTS Specialties;
 
-CREATE TYPE Specialties AS ENUM(
-    'Directing',
-    'Cinematography',
-    'Sound Mixing',
-    'Lighting',
-    'Gripwork',
-    'Script Supervision',
-    'Electrician',
-    'Costuming',
-    'Special Effects',
-    'Makeup',
-    'Gaffing',
-    'Art Directing'
-);
-
 CREATE TABLE Users(
             uid int,
-            name text,
-            phone_num text
+            name text NOT NULL,
+            phone_num text NOT NULL
                 CHECK (phone_num SIMILAR TO '[0-9]{3}-[0-9]{3}-[0-9]{4}'),
             past_cred text,
-            email_address text
+            email_address text NOT NULL
                 CHECK (email_address SIMILAR TO 
                     '[a-zA-Z0-9.]+@[a-zA-Z0-9]+.(com|gov|edu|net|tv|org)'),
             --headshot BLOB,
@@ -38,9 +23,9 @@ CREATE TABLE Users(
 CREATE TABLE Crew(
             cid int,
             uid int UNIQUE NOT NULL,
-            crew_specialties Specialties[],
+            crew_specialties text[],
             PRIMARY KEY(cid),
-            FOREIGN KEY(uid) REFERENCES Users
+            FOREIGN KEY(uid) REFERENCES Users ON DELETE CASCADE
 );
  
 CREATE TABLE Actors(
@@ -52,14 +37,14 @@ CREATE TABLE Actors(
             eye_color text,
             age_range int4range,
             PRIMARY KEY(aid),
-            FOREIGN KEY(uid) REFERENCES Users
+            FOREIGN KEY(uid) REFERENCES Users ON DELETE CASCADE
 );
  
 CREATE TABLE Producers(
             producer_id int,
             uid int UNIQUE NOT NULL,
             PRIMARY KEY(producer_id),
-            FOREIGN KEY(uid) REFERENCES Users
+            FOREIGN KEY(uid) REFERENCES Users ON DELETE CASCADE
 );
 
 CREATE TABLE Scripts(

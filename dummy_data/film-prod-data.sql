@@ -52,16 +52,16 @@ INSERT INTO Users VALUES (20, 'Johnny Fitz', '212-333-3934', 'The Trail of Ontar
     'JonnyFitzYou912@gmail.com',  ARRAY []::date[]); 
 
 -- Insert dummy data into Crew
-INSERT INTO Crew VALUES (1, 3, ARRAY ['Directing','Cinematography','Lighting']::Specialties[]);
+INSERT INTO Crew VALUES (1, 3, ARRAY ['Directing','Cinematography','Lighting']::text[]);
 INSERT INTO Crew VALUES (2, 4, NULL);
-INSERT INTO Crew VALUES (3, 5, ARRAY ['Directing','Art Directing','Sound Mixing']::Specialties[]);
-INSERT INTO Crew VALUES (4, 6, ARRAY ['Special Effects', 'Costuming', 'Makeup']::Specialties[]);
-INSERT INTO Crew VALUES (5, 7, ARRAY ['Directing', 'Sound Mixing', 'Lighting', 'Cinematography']::Specialties[]);
-INSERT INTO Crew VALUES (6, 8, ARRAY ['Directing']::Specialties[]);
-INSERT INTO Crew VALUES (7, 9, ARRAY ['Gaffing']::Specialties[]);
-INSERT INTO Crew VALUES (8, 13, ARRAY ['Gripwork']::Specialties[]);
-INSERT INTO Crew VALUES (9, 14, ARRAY ['Gripwork', 'Gaffing', 'Electrician']::Specialties[]);
-INSERT INTO Crew VALUES (10, 15, ARRAY ['Script Supervision']::Specialties[]);
+INSERT INTO Crew VALUES (3, 5, ARRAY ['Directing','Art Directing','Sound Mixing']::text[]);
+INSERT INTO Crew VALUES (4, 6, ARRAY ['Special Effects', 'Costuming', 'Makeup']::text[]);
+INSERT INTO Crew VALUES (5, 7, ARRAY ['Directing', 'Sound Mixing', 'Lighting', 'Cinematography']::text[]);
+INSERT INTO Crew VALUES (6, 8, ARRAY ['Directing']::text[]);
+INSERT INTO Crew VALUES (7, 9, ARRAY ['Gaffing']::text[]);
+INSERT INTO Crew VALUES (8, 13, ARRAY ['Gripwork']::text[]);
+INSERT INTO Crew VALUES (9, 14, ARRAY ['Gripwork', 'Gaffing', 'Electrician']::text[]);
+INSERT INTO Crew VALUES (10, 15, ARRAY ['Script Supervision']::text[]);
 
 -- Insert dummy data into Actors
 

@@ -1,0 +1,47 @@
+{% extends "layout.html" %}
+{% block content %}
+
+{% set active_page = "scripts_chars" %}
+
+<!-- A page to add a script to the database
+ This is also the means of adding characters to the db-->
+
+<h2>Add a User to the Database</h2>
+
+<form method="POST" action="/adduser_2_db">
+    <p>Please fill out the following information.</p>
+    <ul><li><label for="au2db-title">Name:</label>
+            <input type="text" name="name" id="au2db-title" size=100 required>
+        </li>
+        <li><label for="au2db-phone_num">Phone number:</label>
+            <input type="tel" pattern="\d{3}" name="phone_num1" id="au2db-phone_num" size=3 required maxlength=3>-<input type="tel" pattern="\d{3}" name="phone_num2" id="au2db-phone_num" size=3 required maxlength=3>-<input type="tel" pattern="\d{4}" name="phone_num3" id="au2db-phone_num" size=4 required maxlength=4>
+        </li>
+        <li><label for="au2db-email_address">E-Mail Address:</label>
+            <input type="email" pattern="[a-zA-Z0-9.]{1,100}@[a-zA-Z0-9]{1,100}.(com|gov|edu|net|tv|org)" name="email_address" id="au2db-email_address" size=100 required>
+        </li>
+    </ul>
+    <p><label>Past Credits:<br />Please list any other productions you have worked on in the past.<br />
+       <textarea name="past_cred" rows=10 cols=100></textarea></label></p>
+
+    <p>Select all that apply and fill in the requested information.</p> 
+    <ul>
+        <li><input type="checkbox" name="users_type" value="{{ types[0] }}">{{ types[0] }}
+            <div>
+                <label for="au2db-specialties">Specialties:</label>
+                <select name="specialties" id="au2db-specialties" size=10 multiple>
+                    {% for s in specialties %}
+                    <option>{{ s }}</option> 
+                    {% endfor %}
+                </select>
+            </div>
+        </li>
+        <li><input type="checkbox" name="users_type" value="{{ types[1] }}">{{ types[1] }}</li>
+        <li><input type="checkbox" name="users_type" value="{{ types[2] }}">{{ types[2] }}</li>
+    </ul>
+
+
+    <input type="submit" value="Add User">
+
+</form>
+
+{% endblock %}
