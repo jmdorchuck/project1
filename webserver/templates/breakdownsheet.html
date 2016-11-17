@@ -8,12 +8,12 @@
 <ul>
     <li>PRODUCTION NUMBER: {{ prod_id }}</li>
     <li>PRODUCTION TITLE: {{ prod_title }}</li>
-    <li>SCRIPT PAGE NUMBERS: {{ page_range }}</li>
+    <li>SCRIPT PAGE NUMBERS: {{ page_range[0] }}-{{ page_range[1] }}</li>
     <li>DESCRIPTION: {{ description }}</li>
-<!--    <li>PAGE COUNT: </li> -->
+    <li>PAGE COUNT: {{ page_range[1]-page_range[0] }}</li> 
     <li>LOCATION: {{ location }}
     <li>TIME OF DAY: {{ tod }}</li>
-<table style="border:1px">
+<table class="table">
     <tr><th>CAST</th><th>STUNTS</th></tr>
     <tr><td>
         {% for a in actors %}
@@ -34,7 +34,7 @@
         </td>
         <td>
         {% for p in props %}
-        {{ p }}
+        {{ p }}<br />
         {% endfor %}
         </td>
     </tr>

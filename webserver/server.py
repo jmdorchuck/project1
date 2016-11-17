@@ -754,10 +754,10 @@ def managescene_n_db():
     if len(char_ids) != len(actor_ids):
       raise Exception()
 
-    select_portrays_test="SELECT aid, char_id FROM Portrays WHERE aid=:a 
-                                                            AND char_id=:c
-                                                            AND prod_id=:p 
-                                                            AND scene_id=:s"
+    select_portrays_test=("SELECT aid, char_id FROM Portrays WHERE aid=:a "
+                                                            "AND char_id=:c "
+                                                            "AND prod_id=:p "
+                                                            "AND scene_id=:s")
     insert_portrays_cmd="INSERT INTO Portrays VALUES(:a, :c, :s, :p)"
 
     for ac,ch in zip(actor_ids,char_ids):
@@ -813,8 +813,8 @@ def managescene_n_db():
 @app.route('/breakdownsheet')
 def breakdownsheet():
   try:
-    prod_id=request.args['production']
-    scene_id=request.args['scene']  
+    prod_id=int(request.args['production'])
+    scene_id=int(request.args['scene'])
   except: 
     return errorpage(message='Could not determine production or scene to breakdown.')
 
@@ -823,65 +823,107 @@ def breakdownsheet():
   # Gather values from Production
   try: 
     select_prod_query=("SELECT P.prod_title "
-                "FROM Productions as P"
+                "FROM Productions as P "
                 "WHERE P.prod_id = :p")  
 
     cursor = g.conn.execute(text(select_prod_query),p=prod_id) 
     production = cursor.fetchone()
     cursor.close()
     prod_title = production['prod_title']
-    
-     
 
   except:
-    errorpage(message="There was a problem with the production.")
+    return errorpage(message="There was a problem with the production.")
 
-  '''
+
   # Gather values from Scene
   try:
-    select_scene_query=("SELECT S.scene_id, S.description, S.time_of_day, S.sfx, S.stunts, S.props "
+    select_scene_query=("SELECT S.scene_id, S.description, S.time_of_day, S.special_effects, S.stunts, S.props "
                       "FROM Scenes as S "
                       "WHERE S.scene_id=:s")
 
     cursor = g.conn.execute(text(select_scene_query),s=scene_id) 
-    
+    scene=cursor.fetchone()
+    cursor.close()
+    description = scene['description']
+    tod = scene['time_of_day']
+
+    sfx = []
+    for f in scene['special_effects']:
+      sfx.append(f) 
+
+    props = []
+    for p in scene['props']:
+      props.append(p) 
+
+    stunts = []
+    for s in scene['stunts']:
+      stunts.append(s) 
+
+
   except: 
-    errorpage(message='There was a problem finding the scene.')
+    return errorpage(message='There was a problem finding the scene.')
 
   # Gather Values from Made_Of
-  try:
+  try: 
     select_made_of_query=("SELECT M.page_num "
                           "FROM Made_Of as M "
                           "WHERE M.scene_id=:s AND M.prod_id=:p")
-    g.conn.execute(text(select_scene_query),s=scene_id) 
+    cursor=g.conn.execute(text(select_made_of_query),s=scene_id, p=prod_id) 
+    m=cursor.fetchone()
+    cursor.close()
+    page_range=[int((m['page_num']).lower),int((m['page_num']).upper)]     
+         
 
   except:
-    errorpage(message='There was a problem pulling the page number data.')
+    return errorpage(message='There was a problem pulling the scene data.')
 
-  '''
-  return render_template('breakdownsheet.html')
+
+  # Gather values from Portrays 
+  try:
+    select_portrays_query=("SELECT U.name "
+                           "FROM Users AS U "
+                           "WHERE U.uid IN (SELECT A.uid "
+                                           "FROM Actors as A "
+                                           "WHERE A.aid IN (SELECT P.aid "
+                                                           "FROM Portrays as P "
+                                                           "WHERE P.prod_id=:p "
+                                                                 "AND "
+                                                                 "P.scene_id=:s))")
+
+    cursor = g.conn.execute(text(select_portrays_query),s=scene_id, p=prod_id) 
+    actors = []
+    for actor in cursor:
+      actors.append(str(actor[0])) 
+    cursor.close()
+
+
+  except: 
+    return errorpage(message='There was a problem finding the cast.')
+
+
+  context=dict(prod_id=prod_id, prod_title=prod_title, description=description,
+               tod=tod, sfx=sfx, props=props, page_range=page_range, actors=actors)
+
+
+  return render_template('breakdownsheet.html', **context)
                 
 
-'''
 @app.route('/findtalent')
 def findtalent():
 #  try:
-    select_actor_cmd = ("SELECT U.name,A.Haircolor, A.skills, A.eye_color, A.age_Range "
+    select_actor_cmd = ("SELECT U.name,A.haircolor, A.skills, A.eye_color, A.age_Range "
                         "FROM Actors as A, Users as U "
                         "WHERE A.uid=U.uid")
 
     cursor = g.conn.execute(text(select_actor_cmd))
     actor_list=[]
     for actor in cursor:
-      actor_list.append(a)
+      actor_list.append(actor)
     cursor.close()
-    for actor in actor_list:
-      actor['skills']=map(lambda s: str(s).replace(',','\n'),actor['skills'])
     return render_template("findtalent.html", actors=actor_list)
 
 #  except:
     return errorpage()
-'''
 
 
 if __name__ == "__main__":

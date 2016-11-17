@@ -5,11 +5,20 @@
 
 <h2>Find Cast Members for your production</h2>
 
-<table style="border:1px"><tr><th>Name</th><th>Haircolor</th><th>Skills</th><th>Eye Color</th><th>Age Range</th></tr>
+<table class="table" style="border:1px"><tr><th>Name</th><th>Haircolor</th><th>Skills</th><th>Eye Color</th><th>Age Range</th></tr>
        {% for a in actors %}
-       <tr> {% for i in a %}
-            <td> {{ i }} </td>
-            {% endfor %}
+       <tr> 
+            <td> {{ a['name'] }} </td>
+            <td> {{ a['haircolor'] }} </td>
+            <td> 
+                 {% for s in a['skills'] %}
+                 {{ s }}<br />
+                 {% endfor %}
+            </td>
+            <td> {{ a['eye_color'] }}</td>
+            <td> {{ a['age_range'].lower }} - {{ a['age_range'].upper }}</td>
+      
+
        </tr>
        {% endfor %}
 </table>
