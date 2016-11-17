@@ -108,13 +108,7 @@ CREATE TABLE Produced_By(
             FOREIGN KEY(producer_id) REFERENCES Producers
 );
  
-CREATE TABLE Portrays(
-            aid int,
-            char_id int,
-            PRIMARY KEY(aid, char_id),
-            FOREIGN KEY(aid) REFERENCES Actors,
-            FOREIGN KEY(char_id) REFERENCES Characters
-);
+
  
 CREATE TABLE Feature(
             script_id int,
@@ -127,18 +121,29 @@ CREATE TABLE Feature(
 );
             
 CREATE TABLE Made_Of(
-            script_id int,
+            script_id int NOT NULL,
             prod_id int,
             scene_id int,
             budget real,
             page_num int4range,-- Note that I changed this to a range
-            PRIMARY KEY (scene_id, script_id, prod_id),
+            PRIMARY KEY (scene_id, prod_id),
             FOREIGN KEY (scene_id) REFERENCES Scenes,
             FOREIGN KEY (script_id) REFERENCES Scripts,
             FOREIGN KEY (prod_id) REFERENCES Productions
 );
  
- 
+CREATE TABLE Portrays(
+            aid int,
+            char_id int,
+            scene_id int,
+            prod_id int,
+            PRIMARY KEY(aid, char_id, scene_id, prod_id), -- ADJUSTMENT, mirrors crew
+            FOREIGN KEY(aid) REFERENCES Actors,
+            FOREIGN KEY(char_id) REFERENCES Characters,
+            FOREIGN KEY(scene_id, prod_id) REFERENCES Made_Of -- ADJUSTMENT, mirrors crew
+
+);
+
 CREATE TABLE Shot_At(
             scene_id int,
             filming_loc_id int,

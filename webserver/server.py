@@ -504,11 +504,12 @@ def productionselect():
   for production in cursor:
     production_list.append(production)
   cursor.close()
-  return render_template("productionselect.html",productionlist = production_list)
+  return render_template("productionselect.html", productionlist = production_list)
 
-@app.route('/selectproduction_2_edit', methods=['POST'])
-def selectproduction_2_edit():
+@app.route('/productionconsole', methods=['POST'])
+def productionconsole():
   # Determine which production they want to edit
+  
   try: 
     production = request.form['prod2edit'] 
     prod_id = int((production.split(' - '))[0])
@@ -522,12 +523,12 @@ def selectproduction_2_edit():
     for scene in cursor:
       scene_list.append(scene)
     cursor.close()
-    print scene_list
     scene_list.sort(key=itemgetter(2)) 
-    print scene_list
 
   except:
-    return render_template("error.html", redo_link="/productionselect", action="select another production")
+    return errorpage(redo_link="/productionselect", 
+                     action="select another production", 
+                     message="There was a database issue.")
 
   return render_template("productionconsole.html", scenelist=scene_list, production=prod_id)
 
@@ -697,6 +698,8 @@ def managescene():
                                              locations=location_list)
 
 
+
+
 @app.route('/managescene_n_db', methods=['POST'])
 def managescene_n_db():
   # Define error strings
@@ -751,14 +754,18 @@ def managescene_n_db():
     if len(char_ids) != len(actor_ids):
       raise Exception()
 
-    select_portrays_test="SELECT aid, char_id FROM portrays WHERE aid=:a AND char_id=:c"
-    insert_portrays_cmd="INSERT INTO Portrays VALUES(:a, :c)"
+    select_portrays_test="SELECT aid, char_id FROM Portrays WHERE aid=:a 
+                                                            AND char_id=:c
+                                                            AND prod_id=:p 
+                                                            AND scene_id=:s"
+    insert_portrays_cmd="INSERT INTO Portrays VALUES(:a, :c, :s, :p)"
 
     for ac,ch in zip(actor_ids,char_ids):
       cursor = g.conn.execute(text(select_portrays_test),
-                                   a=ac,c=ch) 
+                                   a=ac,c=ch, p=prod_id, s=scene_id) 
       if cursor.rowcount==0:
-        g.conn.execute(text(insert_portrays_cmd),a=ac, c=ch) 
+        g.conn.execute(text(insert_portrays_cmd),a=ac, c=ch, s=scene_id, 
+                                                 p=prod_id) 
       cursor.close()
 
   except:
@@ -802,6 +809,60 @@ def managescene_n_db():
 
   return render_template("success.html", action="managing your scene")
 
+
+@app.route('/breakdownsheet')
+def breakdownsheet():
+  try:
+    prod_id=request.args['production']
+    scene_id=request.args['scene']  
+  except: 
+    return errorpage(message='Could not determine production or scene to breakdown.')
+
+  # Gather the requisite values for the breakdown.
+
+  # Gather values from Production
+  try: 
+    select_prod_query=("SELECT P.prod_title "
+                "FROM Productions as P"
+                "WHERE P.prod_id = :p")  
+
+    cursor = g.conn.execute(text(select_prod_query),p=prod_id) 
+    production = cursor.fetchone()
+    cursor.close()
+    prod_title = production['prod_title']
+    
+     
+
+  except:
+    errorpage(message="There was a problem with the production.")
+
+  '''
+  # Gather values from Scene
+  try:
+    select_scene_query=("SELECT S.scene_id, S.description, S.time_of_day, S.sfx, S.stunts, S.props "
+                      "FROM Scenes as S "
+                      "WHERE S.scene_id=:s")
+
+    cursor = g.conn.execute(text(select_scene_query),s=scene_id) 
+    
+  except: 
+    errorpage(message='There was a problem finding the scene.')
+
+  # Gather Values from Made_Of
+  try:
+    select_made_of_query=("SELECT M.page_num "
+                          "FROM Made_Of as M "
+                          "WHERE M.scene_id=:s AND M.prod_id=:p")
+    g.conn.execute(text(select_scene_query),s=scene_id) 
+
+  except:
+    errorpage(message='There was a problem pulling the page number data.')
+
+  '''
+  return render_template('breakdownsheet.html')
+                
+
+'''
 @app.route('/findtalent')
 def findtalent():
 #  try:
@@ -820,6 +881,8 @@ def findtalent():
 
 #  except:
     return errorpage()
+'''
+
 
 if __name__ == "__main__":
   import click

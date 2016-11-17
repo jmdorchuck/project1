@@ -194,18 +194,6 @@ INSERT INTO Produced_By VALUES (8, 6, 'P Squared Films');
 INSERT INTO Produced_By VALUES (7, 7, 'The Voice Features');
 INSERT INTO Produced_By VALUES (7, 3, 'The Voice Features');
 
--- Insert Dummy Data into Portrays
-INSERT INTO Portrays VALUES (5, 1); --David
-INSERT INTO Portrays VALUES (2, 2); --Emily
-INSERT INTO Portrays VALUES (3, 3); --Bum
-INSERT INTO Portrays VALUES (1, 4); --Dr. Bonderman
-INSERT INTO Portrays VALUES (10, 5); --Orderly
-INSERT INTO Portrays VALUES (4, 6); --Steven
-INSERT INTO Portrays VALUES (8, 7); --Ana
-INSERT INTO Portrays VALUES (7, 8); --Jasper
-INSERT INTO Portrays VALUES (1, 9); --Finn
-INSERT INTO Portrays VALUES (6, 10); --Brighid
-
 -- Insert dummy data into Feature 
 INSERT INTO Feature VALUES (1, 1, 1);
 INSERT INTO Feature VALUES (1, 1, 2);
@@ -229,6 +217,18 @@ INSERT INTO Made_Of VALUES (1, 5, 2, NULL, '[2,4]');
 INSERT INTO Made_Of VALUES (1, 5, 3, NULL, '[4,6]');
 INSERT INTO Made_Of VALUES (1, 5, 4, NULL, '[6,8]');
 INSERT INTO Made_Of VALUES (1, 5, 5, NULL, '[8,8]');
+
+-- Insert Dummy Data into Portrays
+INSERT INTO Portrays VALUES (5, 1, 1, 5); --David
+INSERT INTO Portrays VALUES (2, 2, 1, 5); --Emily
+INSERT INTO Portrays VALUES (3, 3, 1, 5); --Bum
+INSERT INTO Portrays VALUES (1, 4, 3, 5); --Dr. Bonderman
+INSERT INTO Portrays VALUES (10, 5, 3, 5); --Orderly
+INSERT INTO Portrays VALUES (4, 6, 6, 4); --Steven
+INSERT INTO Portrays VALUES (8, 7, 7, 4); --Ana
+INSERT INTO Portrays VALUES (7, 8, 8, 4); --Jasper
+INSERT INTO Portrays VALUES (1, 9, 9, 4); --Finn
+INSERT INTO Portrays VALUES (6, 10, 9, 4); --Brighid
 
 
 

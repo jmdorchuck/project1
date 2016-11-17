@@ -1,0 +1,46 @@
+{% extends "layout.html" %}
+{% block content %}
+
+{% set active_page = 'talent' %}
+
+<h2>Breakdown Sheet</h2>
+
+<ul>
+    <li>PRODUCTION NUMBER: {{ prod_id }}</li>
+    <li>PRODUCTION TITLE: {{ prod_title }}</li>
+    <li>SCRIPT PAGE NUMBERS: {{ page_range }}</li>
+    <li>DESCRIPTION: {{ description }}</li>
+<!--    <li>PAGE COUNT: </li> -->
+    <li>LOCATION: {{ location }}
+    <li>TIME OF DAY: {{ tod }}</li>
+<table style="border:1px">
+    <tr><th>CAST</th><th>STUNTS</th></tr>
+    <tr><td>
+        {% for a in actors %}
+        {{ a }}<br />
+        {% endfor %}
+        </td>
+        <td>
+        {% for s in stunts %}
+        {{ s }}<br />
+        {% endfor %}
+        </td>
+     </tr>
+    <tr><th>SPECIAL EFFECTS</th><th>PROPS</th></tr>
+    <tr><td>
+        {% for f in sfx %}
+        {{ f }}<br />
+        {% endfor %}
+        </td>
+        <td>
+        {% for p in props %}
+        {{ p }}
+        {% endfor %}
+        </td>
+    </tr>
+
+
+
+</table>
+
+{% endblock %}
