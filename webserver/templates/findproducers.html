@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+{% block content %}
+
+{% set active_page = 'talent' %}
+
+<h2>Find Producers for your production</h2>
+
+<table class="table" style="border:1px"><tr><th>Name</th><th>Past Credits</th><tr>E-Mail Address</th></tr>
+       {% for p in producers %}
+       <tr> 
+            <td> {{ p['name'] }} </td>
+            <td> {{ p['past_cred'] }} </td>
+            <td> {{ p['email_address'] }} </td>
+
+       </tr>
+       {% endfor %}
+</table>
+
+{% endblock %}

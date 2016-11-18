@@ -1,0 +1,28 @@
+{% extends "layout.html" %}
+{% block content %}
+
+{% set active_page = 'talent' %}
+
+<h2>Find Cast Members for your production</h2>
+
+<table class="table" style="border:1px"><tr><th>Name</th><th>Haircolor</th><th>Skills</th><th>Eye Color</th><th>Age Range</th><th>E-Mail Address</th></tr>
+       {% for a in actors %}
+       <tr> 
+            <td> {{ a['name'] }} </td>
+            <td> {{ a['haircolor'] }} </td>
+            <td> 
+                 {% for s in a['skills'] %}
+                 {{ s }}<br />
+                 {% endfor %}
+            </td>
+            <td> {{ a['eye_color'] }}</td>
+            <td> {{ a['age_range'].lower }} - {{ a['age_range'].upper }}</td>
+            <td> {{ a['email_address'] }}</td>
+
+      
+
+       </tr>
+       {% endfor %}
+</table>
+
+{% endblock %}

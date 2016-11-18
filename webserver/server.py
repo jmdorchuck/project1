@@ -908,10 +908,10 @@ def breakdownsheet():
   return render_template('breakdownsheet.html', **context)
                 
 
-@app.route('/findtalent')
-def findtalent():
+@app.route('/findactors')
+def findactors():
 #  try:
-    select_actor_cmd = ("SELECT U.name,A.haircolor, A.skills, A.eye_color, A.age_Range "
+    select_actor_cmd = ("SELECT U.name,A.haircolor, A.skills, A.eye_color, A.age_Range, U.email_address "
                         "FROM Actors as A, Users as U "
                         "WHERE A.uid=U.uid")
 
@@ -920,7 +920,59 @@ def findtalent():
     for actor in cursor:
       actor_list.append(actor)
     cursor.close()
-    return render_template("findtalent.html", actors=actor_list)
+    return render_template("findactors.html", actors=actor_list)
+
+#  except:
+    return errorpage()
+
+@app.route('/findcrew')
+def findcrew():
+#  try:
+    select_crew_cmd = ("SELECT U.name,C.crew_specialties,U.past_cred,U.email_address "
+                       "FROM Crew as C, Users as U "
+                       "WHERE C.uid=U.uid")
+
+    cursor = g.conn.execute(text(select_crew_cmd))
+    crew_list=[]
+    for crew in cursor:
+      crew_list.append(crew)
+    cursor.close()
+    return render_template("findcrew.html", crew=crew_list)
+
+#  except:
+    return errorpage()
+
+
+@app.route('/findproducers')
+def findproducers():
+#  try:
+    select_producers_cmd = ("SELECT U.name,U.past_cred, U.email_address "
+                       "FROM Producers as P, Users as U "
+                       "WHERE P.uid=U.uid")
+
+    cursor = g.conn.execute(text(select_producers_cmd))
+    producer_list=[]
+    for producer in cursor:
+      producer_list.append(producer)
+    cursor.close()
+    return render_template("findproducers.html", producers=producer_list)
+
+#  except:
+    return errorpage()
+
+@app.route('/findlocations')
+def findlocations():
+#  try:
+    select_locations_cmd = ("SELECT L.name,L.description,L.address,F.rate "
+                       "FROM Locations as L, Filming_Locations as F "
+                       "WHERE F.loc_id=L.loc_id")
+
+    cursor = g.conn.execute(text(select_locations_cmd))
+    location_list=[]
+    for location in cursor:
+      location_list.append(location)
+    cursor.close()
+    return render_template("findlocations.html", locations=location_list)
 
 #  except:
     return errorpage()

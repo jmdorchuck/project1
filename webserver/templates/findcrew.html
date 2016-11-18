@@ -1,0 +1,24 @@
+{% extends "layout.html" %}
+{% block content %}
+
+{% set active_page = 'talent' %}
+
+<h2>Find Crew Members for your production</h2>
+
+<table class="table" style="border:1px"><tr><th>Name</th><th>Specialties</th><th>Past Credits</th><th>E-Mail Address</tr>
+       {% for c in crew %}
+       <tr> 
+            <td> {{ c['name'] }} </td>
+            <td> 
+                 {% for s in c['specialties'] %}
+                 {{ s }}<br />
+                 {% endfor %}
+            </td>
+            <td> {{ c['past_cred'] }}</td>
+            <td> {{ c['email_address'] }}</td>
+
+       </tr>
+       {% endfor %}
+</table>
+
+{% endblock %}

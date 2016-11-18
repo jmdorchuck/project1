@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+{% block content %}
+
+{% set active_page = 'talent' %}
+
+<h2>Find Locations at which to shoot your production</h2>
+
+<table class="table" style="border:1px"><tr><th>Name</th><th>Description</th><th>Address</th><th>Rate</th></tr>
+       {% for l in locations %}
+       <tr> 
+            <td> {{ l['name'] }} </td>
+            <td> {{ l['description'] }} </td>
+            <td> {{ l['address'] }}</td>
+            <td> {{ '$%.2f'|format(l['rate']) }}</td>
+      
+
+       </tr>
+       {% endfor %}
+</table>
+
+{% endblock %}
