@@ -148,7 +148,7 @@ CREATE TABLE Shot_At(
             scene_id int,
             filming_loc_id int,
             shoot_time time,
-            shoot_date timestamp,
+            shoot_date date,
             PRIMARY KEY (scene_id, shoot_date), -- Note that I changed the primary key to be shoot date rather than time
             FOREIGN KEY (scene_id) REFERENCES Scenes,
             FOREIGN KEY (filming_loc_id) REFERENCES Filming_Locations

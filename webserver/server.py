@@ -198,23 +198,10 @@ array_limit=50
 
 @app.route('/adduser')
 def adduser():
-  '''
-  cursor = g.conn.execute(text("SELECT * FROM specialties"))
-  specialties = []
-  for s in cursor:
-    specialties.append(s) 
-  print specialties
-  cursor.close()
-  '''
   return render_template("adduser.html", types=user_types, specialties=specialties)  
 
 @app.route('/adduser_2_db', methods=['POST'])
 def adduser_2_db():
-  '''
-  cursor = g.conn.execute(text("SELECT enum_range(NULL::specialties)"))
-  specialties = list(cursor.fetchall())
-  cursor.close()
-  '''
   # Define error links and actions
   redo_link = "/adduser"
   action = "add your user"
@@ -488,6 +475,7 @@ def addproduction_2_db():
       if cursor.rowcount == 0:
         insert_cmd = "INSERT INTO Produced_by VALUES (:p, :r, :c)"
       g.conn.execute(text(insert_cmd), p=new_pid, r=producers, c=production_company)
+      cursor.clos()
   except:
     # If we fail, we have to delete any existing records of the production
     g.conn.execute(text('DELETE FROM Produced_by WHERE prod_id=:p'), p=new_pid)
@@ -556,6 +544,7 @@ def addscene():
   try:
     cursor = g.conn.execute(text("SELECT prod_title FROM Productions WHERE prod_id=:p"),p=prod_id)
     title = cursor.fetchone()['prod_title']
+    cursor.close()
     return render_template("addscene.html",prod_id=prod_id, prod_title=title, 
                             scripts=script_list, characters=character_list) 
   except:
@@ -723,12 +712,14 @@ def managescene_n_db():
 
     # Works_On Variables
     crew_size = int(request.form['crewsize'])    
-    crew_ids_roles_raw = []
-    for i in range(crew_size):
-      print 'crew'+str(i)
-      crew_ids_roles_raw.append(request.form.getlist('crew'+str(i)))
-    crew_ids_roles = map(lambda c: [(c[0].split(' - '))[0],(c[0].split(' - '))[1],c[1]], crew_ids_roles_raw)
-    print crew_ids_roles
+    if crew_size > 0:
+      crew_ids_roles_raw = []
+      for i in range(crew_size):
+        print 'crew'+str(i)
+        crew_ids_roles_raw.append(request.form.getlist('crew'+str(i)))
+      crew_ids_roles = map(lambda c: [(c[0].split(' - '))[0],(c[0].split(' - '))[1],c[1]], crew_ids_roles_raw)
+    else:
+      crew_ids_roles = []
 
 
   except:
@@ -811,13 +802,21 @@ def managescene_n_db():
   try:
     select_shot_at_test=("SELECT scene_id, shoot_date FROM Shot_At "
                          "WHERE scene_id=:s AND shoot_date=:d")
-    insert_works_on_cmd="INSERT INTO Shot_At VALUES(:s, :l, :t, :d)"
+    insert_shot_at_cmd="INSERT INTO Shot_At VALUES(:s, :l, :t, :d)"
+    update_shot_at_cmd=("UPDATE Shot_At SET filming_loc_id=:l,shoot_time=:t WHERE shoot_date=:d "
+                                                      "AND scene_id=:s ")
+
     cursor = g.conn.execute(text(select_shot_at_test), s=scene_id, d=shoot_date) 
     if cursor.rowcount==0:
-      g.conn.execute(text(insert_works_on_cmd), s=scene_id, l=filming_loc_id,
+      g.conn.execute(text(insert_shot_at_cmd), s=scene_id, l=filming_loc_id,
                                                 t=shoot_time, d=shoot_date)
 
-      cursor.close()
+    else:
+      g.conn.execute(text(update_shot_at_cmd), s=scene_id, l=filming_loc_id,
+                                                t=shoot_time, d=shoot_date)
+
+
+    cursor.close()
 
   except:
     return errorpage(message="There was a problem adding time and location data into the database.")
