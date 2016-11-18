@@ -137,7 +137,7 @@ CREATE TABLE Portrays(
             char_id int,
             scene_id int,
             prod_id int,
-            PRIMARY KEY(aid, char_id, scene_id, prod_id), -- ADJUSTMENT, mirrors crew
+            PRIMARY KEY(char_id, scene_id, prod_id), -- ADJUSTMENT, mirrors crew
             FOREIGN KEY(aid) REFERENCES Actors,
             FOREIGN KEY(char_id) REFERENCES Characters,
             FOREIGN KEY(scene_id, prod_id) REFERENCES Made_Of -- ADJUSTMENT, mirrors crew
@@ -155,11 +155,13 @@ CREATE TABLE Shot_At(
 );
  
 CREATE TABLE Works_On(
-            cid int,
+            cid int NOT NULL,
             prod_id int,
             scene_id int,
             role text,
-            PRIMARY KEY (scene_id, cid, prod_id),
+            PRIMARY KEY (scene_id, role, prod_id), --ADJUSTMENT, allows 
+                                                   -- for one person, 
+                                                   -- many roles
             FOREIGN KEY (scene_id) REFERENCES Scenes,
             FOREIGN KEY (cid) REFERENCES Crew,
             FOREIGN KEY (prod_id) REFERENCES Productions

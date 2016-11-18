@@ -754,18 +754,25 @@ def managescene_n_db():
     if len(char_ids) != len(actor_ids):
       raise Exception()
 
-    select_portrays_test=("SELECT aid, char_id FROM Portrays WHERE aid=:a "
-                                                            "AND char_id=:c "
-                                                            "AND prod_id=:p "
-                                                            "AND scene_id=:s")
+    select_portrays_test=("SELECT char_id FROM Portrays WHERE char_id=:c "
+                                                         "AND prod_id=:p "
+                                                         "AND scene_id=:s")
     insert_portrays_cmd="INSERT INTO Portrays VALUES(:a, :c, :s, :p)"
+    update_portrays_cmd=("UPDATE Portrays SET aid=:a WHERE char_id=:c "
+                                                      "AND prod_id=:p "
+                                                      "AND scene_id=:s")
+
 
     for ac,ch in zip(actor_ids,char_ids):
       cursor = g.conn.execute(text(select_portrays_test),
-                                   a=ac,c=ch, p=prod_id, s=scene_id) 
+                                   c=ch, p=prod_id, s=scene_id) 
       if cursor.rowcount==0:
         g.conn.execute(text(insert_portrays_cmd),a=ac, c=ch, s=scene_id, 
                                                  p=prod_id) 
+      else:
+        g.conn.execute(text(update_portrays_cmd),a=ac, c=ch, s=scene_id, 
+                                                 p=prod_id) 
+     
       cursor.close()
 
   except:
@@ -773,17 +780,26 @@ def managescene_n_db():
 
   # Insert the Works_On data in the database
   try:
-    select_works_on_test=("SELECT cid, prod_id, scene_id FROM Works_On "
-                         "WHERE cid=:c AND prod_id=:p AND scene_id=:s")
+    select_works_on_test=("SELECT role, prod_id, scene_id FROM Works_On "
+                         "WHERE role=:r AND prod_id=:p AND scene_id=:s")
     insert_works_on_cmd="INSERT INTO Works_On VALUES(:c, :p, :s, :r)"
+    update_works_on_cmd=("UPDATE Works_On SET cid=:c WHERE role=:r "
+                                                      "AND prod_id=:p "
+                                                      "AND scene_id=:s")
+
     for c in crew_ids_roles:
       print c
-      cursor = g.conn.execute(text(select_works_on_test), c=c[0], 
+      cursor = g.conn.execute(text(select_works_on_test), r=c[2], 
                               p=prod_id, s=scene_id,) 
       if cursor.rowcount==0:
         g.conn.execute(text(insert_works_on_cmd),c=c[0], 
                                                  p=prod_id, s=scene_id, 
                                                  r=c[2]) 
+      else:
+        g.conn.execute(text(update_works_on_cmd),c=c[0], 
+                                                 p=prod_id, s=scene_id, 
+                                                 r=c[2]) 
+
 
       cursor.close()
 
